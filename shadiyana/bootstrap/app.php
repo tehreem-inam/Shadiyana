@@ -1,9 +1,11 @@
 <?php
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,11 +14,79 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->is('api/*')) {
+                return null;
+            }
+
+            return route('login');
+        });
+
     })
+
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
-        );
-    })->create();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Unauthenticated API Requests
+        |--------------------------------------------------------------------------
+        */
+
+        $exceptions->render(function (
+            AuthenticationException $e,
+            Request $request
+        ) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Unauthorized. Please provide a valid authentication token.',
+                ], 401);
+            }
+
+            return null;
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validation Errors
+        |--------------------------------------------------------------------------
+        */
+
+        $exceptions->render(function (
+            ValidationException $e,
+            Request $request
+        ) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => 'The given data was invalid.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+
+            return null;
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | General API Exceptions
+        |--------------------------------------------------------------------------
+        */
+
+        $exceptions->render(function (
+            Throwable $e,
+            Request $request
+        ) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => 'An unexpected error occurred.',
+                ], 500);
+            }
+
+            return null;
+        });
+
+    })
+
+    ->create();
