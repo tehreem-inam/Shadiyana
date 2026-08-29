@@ -19,6 +19,7 @@
     "dependencies": {
         "@celsowm/markdown-wysiwyg": "^1.0.6",
         "alpinejs": "^3.16.3",
+        "leaflet": "^1.9.4",
         "marked": "^18.0.11"
     }
 }

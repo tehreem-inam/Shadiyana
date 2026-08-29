@@ -109,59 +109,6 @@
     </div>
 
 
-    {{-- ============================================================
-        VALIDATION ERRORS
-    ============================================================= --}}
-
-    @if($errors->any())
-
-        <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4">
-
-            <div class="flex items-start gap-3">
-
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600">
-
-                    <svg
-                        class="h-5 w-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 9v4m0 4h.01M10.29 3.86l-7.5 13A2 2 0 004.53 20h14.94a2 2 0 001.74-3l-7.5-13a2 2 0 00-3.42 0z"
-                        />
-                    </svg>
-
-                </div>
-
-                <div class="min-w-0">
-
-                    <h3 class="text-sm font-bold text-red-800">
-                        Please fix the following errors
-                    </h3>
-
-                    <ul class="mt-2 list-inside list-disc space-y-1 text-sm text-red-700">
-
-                        @foreach($errors->all() as $error)
-
-                            <li>
-                                {{ $error }}
-                            </li>
-
-                        @endforeach
-
-                    </ul>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    @endif
 
 
     {{-- ============================================================

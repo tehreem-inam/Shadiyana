@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 
 @section('title', 'Create City')
@@ -229,9 +230,11 @@
                                     {{ old('state_id') == $state->id ? 'selected' : '' }}
                                 >
                                     {{ $state->name }}
+
                                     @if ($state->country)
                                         — {{ $state->country->name }}
                                     @endif
+
                                 </option>
 
                             @endforeach
@@ -342,12 +345,15 @@
 
         <div class="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
 
-            {{-- Card Header --}}
+            {{-- ========================================================
+                CARD HEADER
+            ========================================================= --}}
+
             <div class="border-b border-gray-100 px-5 py-5 sm:px-6">
 
                 <div class="flex items-center gap-3">
 
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FBEBEF] text-[#D7385E]">
 
                         <svg
                             class="h-5 w-5"
@@ -368,6 +374,7 @@
                                 r="2.5"
                                 stroke-width="1.8"
                             />
+
                         </svg>
 
                     </div>
@@ -379,7 +386,7 @@
                         </h2>
 
                         <p class="mt-0.5 text-xs text-gray-500">
-                            Optionally provide the geographical coordinates of the city.
+                            Search for a location or select the exact position on the map.
                         </p>
 
                     </div>
@@ -389,9 +396,180 @@
             </div>
 
 
+            {{-- ========================================================
+                LOCATION CONTENT
+            ========================================================= --}}
+
             <div class="p-5 sm:p-6">
 
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+
+                {{-- ====================================================
+                    SEARCH LOCATION
+                ===================================================== --}}
+
+                <div>
+
+                    <label
+                        for="location-search"
+                        class="mb-2 block text-sm font-bold text-gray-700"
+                    >
+                        Search Location
+                    </label>
+
+
+                    <div class="flex flex-col gap-2 sm:flex-row">
+
+                        <div class="relative flex-1">
+
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+
+                                <svg
+                                    class="h-4 w-4 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.8"
+                                        d="m21 21-4.35-4.35m2.1-5.4a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z"
+                                    />
+                                </svg>
+
+                            </div>
+
+
+                            <input
+                                type="text"
+                                id="location-search"
+                                autocomplete="off"
+                                placeholder="e.g. Multan, Pakistan"
+                                class="block w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm font-medium text-gray-700 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-[#D7385E] focus:ring-2 focus:ring-[#D7385E]/10"
+                            >
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            id="location-search-button"
+                            class="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#D7385E] px-5 text-sm font-bold text-white shadow-sm shadow-[#D7385E]/20 transition hover:bg-[#C92F53] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+
+                            <svg
+                                class="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1.8"
+                                    d="m21 21-4.35-4.35m2.1-5.4a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z"
+                                />
+                            </svg>
+
+                            <span>
+                                Search
+                            </span>
+
+                        </button>
+
+                    </div>
+
+
+                    {{-- Search Status --}}
+                    <p
+                        id="location-search-message"
+                        class="mt-2 hidden text-xs"
+                    ></p>
+
+
+                    <p class="mt-2 text-xs text-gray-400">
+                        Search for a city or location, then fine-tune the exact position using the map.
+                    </p>
+
+                </div>
+
+
+                {{-- ====================================================
+                    MAP
+                ===================================================== --}}
+
+                <div class="mt-6">
+
+                    <div class="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+
+                        <div>
+
+                            <h3 class="text-sm font-bold text-gray-700">
+                                Select Location on Map
+                            </h3>
+
+                            <p class="text-xs text-gray-400">
+                                Click anywhere on the map or drag the marker.
+                            </p>
+
+                        </div>
+
+
+                        <span class="inline-flex w-fit items-center rounded-full bg-gray-100 px-3 py-1 text-[11px] font-semibold text-gray-500">
+                            OpenStreetMap
+                        </span>
+
+                    </div>
+
+
+                    {{-- Map --}}
+                    <div
+                        id="city-map"
+                        class="h-[350px] w-full overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 shadow-sm sm:h-[450px]"
+                    ></div>
+
+
+                    {{-- Map Instructions --}}
+                    <div class="mt-3 flex items-start gap-2 rounded-xl bg-[#FBEBEF] px-4 py-3">
+
+                        <svg
+                            class="mt-0.5 h-4 w-4 shrink-0 text-[#D7385E]"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M13 16h-1v-4h-1m1-4h.01M12 21a9 9 0 100-18 9 9 0 000 18z"
+                            />
+
+                        </svg>
+
+
+                        <p class="text-xs leading-5 text-[#9f2946]">
+
+                            <span class="font-bold">
+                                Tip:
+                            </span>
+
+                            Click anywhere on the map to place the marker.
+                            You can also drag the marker to fine-tune the exact location.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                {{-- ====================================================
+                    COORDINATES
+                ===================================================== --}}
+
+                <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
 
 
                     {{-- =================================================
@@ -407,6 +585,7 @@
                             Latitude
                         </label>
 
+
                         <input
                             type="number"
                             id="latitude"
@@ -415,13 +594,15 @@
                             step="0.00000001"
                             min="-90"
                             max="90"
-                            placeholder="e.g. 30.1575"
+                            placeholder="e.g. 30.15750000"
                             class="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-[#D7385E] focus:ring-2 focus:ring-[#D7385E]/10"
                         >
 
+
                         <p class="mt-1.5 text-xs text-gray-400">
-                            Valid range: -90 to 90.
+                            Automatically updated when a map location is selected.
                         </p>
+
 
                         @error('latitude')
 
@@ -447,6 +628,7 @@
                             Longitude
                         </label>
 
+
                         <input
                             type="number"
                             id="longitude"
@@ -455,13 +637,15 @@
                             step="0.00000001"
                             min="-180"
                             max="180"
-                            placeholder="e.g. 71.5249"
+                            placeholder="e.g. 71.52490000"
                             class="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-[#D7385E] focus:ring-2 focus:ring-[#D7385E]/10"
                         >
 
+
                         <p class="mt-1.5 text-xs text-gray-400">
-                            Valid range: -180 to 180.
+                            Automatically updated when a map location is selected.
                         </p>
+
 
                         @error('longitude')
 
@@ -588,6 +772,7 @@
                 Cancel
             </a>
 
+
             <button
                 type="submit"
                 class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#D7385E] px-6 text-sm font-bold text-white shadow-sm shadow-[#D7385E]/20 transition hover:bg-[#C92F53] hover:shadow-md"
@@ -618,3 +803,4 @@
 </div>
 
 @endsection
+

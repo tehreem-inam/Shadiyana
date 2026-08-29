@@ -11,32 +11,19 @@ use Illuminate\View\View;
 
 class AuthController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Show Login Page
-    |--------------------------------------------------------------------------
-    */
-
+  
+    // | Show Login Page
     public function showLogin(): View
     {
         return view('auth.login');
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Login
-    |--------------------------------------------------------------------------
-    */
+    // | Login
+  
 
 public function login(Request $request): RedirectResponse
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Validate Login Input
-    |--------------------------------------------------------------------------
-    */
-
+   
     $validated = $request->validate([
         'login' => [
             'required',
@@ -49,12 +36,7 @@ public function login(Request $request): RedirectResponse
         ],
     ]);
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Determine Login Type
-    |--------------------------------------------------------------------------
-    */
+    // | Determine Login Type
 
     $login = trim($validated['login']);
 
@@ -62,12 +44,7 @@ public function login(Request $request): RedirectResponse
         ? 'email'
         : 'phone_number';
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Build Credentials
-    |--------------------------------------------------------------------------
-    */
+    // | Build Credentials
 
     $credentials = [
         $field => $login,
@@ -76,20 +53,15 @@ public function login(Request $request): RedirectResponse
     ];
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Remember Me
-    |--------------------------------------------------------------------------
-    */
+    // | Remember Me
+
 
     $remember = $request->boolean('remember');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Attempt Authentication
-    |--------------------------------------------------------------------------
-    */
+
+    // | Attempt Authentication
+
 
     if (!Auth::guard('web')->attempt($credentials, $remember)) {
 
@@ -101,8 +73,7 @@ public function login(Request $request): RedirectResponse
                 $request->only('login')
             );
     }
-
-
+    
     /*
     |--------------------------------------------------------------------------
     | Regenerate Session
@@ -111,7 +82,6 @@ public function login(Request $request): RedirectResponse
 
     $request->session()->regenerate();
 
-
     /*
     |--------------------------------------------------------------------------
     | Get Authenticated User
@@ -119,6 +89,7 @@ public function login(Request $request): RedirectResponse
     */
 
     /** @var \App\Models\User $user */
+
     $user = Auth::guard('web')->user();
 
 
@@ -131,9 +102,7 @@ public function login(Request $request): RedirectResponse
     $user->update([
         'last_login_at' => now(),
     ]);
-
-
-    /*
+  /*
     |--------------------------------------------------------------------------
     | Role-Based Dashboard
     |--------------------------------------------------------------------------
@@ -159,7 +128,6 @@ public function login(Request $request): RedirectResponse
 
         Auth::guard('web')->logout();
 
-
         /*
         |--------------------------------------------------------------------------
         | Invalidate Session
@@ -167,8 +135,7 @@ public function login(Request $request): RedirectResponse
         */
 
         $request->session()->invalidate();
-
-
+        
         /*
         |--------------------------------------------------------------------------
         | Regenerate CSRF Token
@@ -186,25 +153,21 @@ public function login(Request $request): RedirectResponse
             );
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Show Register Page
     |--------------------------------------------------------------------------
-    */
-
+   */
     public function showRegister(): View
     {
         return view('auth.register');
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Register
     |--------------------------------------------------------------------------
-    */
-
+  */
     public function register(Request $request): RedirectResponse
     {
         $validated = $request->validate([
