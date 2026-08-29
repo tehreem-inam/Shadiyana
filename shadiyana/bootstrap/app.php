@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use App\Http\Middleware\RoleMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,7 +18,24 @@ return Application::configure(basePath: dirname(__DIR__))
 
     ->withMiddleware(function (Middleware $middleware): void {
 
+        /*
+        |--------------------------------------------------------------------------
+        | Middleware Aliases
+        |--------------------------------------------------------------------------
+        */
+
+        $middleware->alias([
+            'role' => RoleMiddleware::class,
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Guest Redirect
+        |--------------------------------------------------------------------------
+        */
+
         $middleware->redirectGuestsTo(function (Request $request) {
+
             if ($request->is('api/*')) {
                 return null;
             }
@@ -39,7 +57,9 @@ return Application::configure(basePath: dirname(__DIR__))
             AuthenticationException $e,
             Request $request
         ) {
+
             if ($request->is('api/*')) {
+
                 return response()->json([
                     'message' => 'Unauthorized. Please provide a valid authentication token.',
                 ], 401);
@@ -47,6 +67,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return null;
         });
+
 
         /*
         |--------------------------------------------------------------------------
@@ -58,7 +79,9 @@ return Application::configure(basePath: dirname(__DIR__))
             ValidationException $e,
             Request $request
         ) {
+
             if ($request->is('api/*')) {
+
                 return response()->json([
                     'message' => 'The given data was invalid.',
                     'errors' => $e->errors(),
@@ -67,6 +90,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return null;
         });
+
 
         /*
         |--------------------------------------------------------------------------
@@ -78,7 +102,9 @@ return Application::configure(basePath: dirname(__DIR__))
             Throwable $e,
             Request $request
         ) {
+
             if ($request->is('api/*')) {
+
                 return response()->json([
                     'message' => 'An unexpected error occurred.',
                 ], 500);
