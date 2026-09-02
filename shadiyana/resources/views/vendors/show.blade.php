@@ -1,4 +1,4 @@
-```blade
+
 @extends('layouts.app')
 
 @section('title', $vendor->business_name)
@@ -102,43 +102,6 @@
         </div>
 
     </div>
-
-
-    {{-- ================================================================
-        FLASH MESSAGE
-    ================================================================= --}}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-
-        @if(session('success'))
-
-            <div
-                class="mb-6 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-4 text-green-800"
-            >
-
-                <svg
-                    class="w-5 h-5 mt-0.5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                    />
-                </svg>
-
-                <div class="text-sm font-medium">
-                    {{ session('success') }}
-                </div>
-
-            </div>
-
-        @endif
-
-    </div>
-
 
     {{-- ================================================================
         MAIN CONTENT
@@ -794,19 +757,221 @@
                 </div>
 
 
-                {{-- ====================================================
-                    SERVICES
-                ===================================================== --}}
-                @if($vendor->services->count())
+{{-- ====================================================
+SERVICES
+===================================================== --}}
 
-                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-7">
+<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-7">
 
-                        <div class="flex items-center gap-3 mb-5">
 
-                            <div class="w-10 h-10 rounded-xl bg-[#FBEBEF] flex items-center justify-center">
+{{-- Section Header --}}
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+
+    {{-- Title --}}
+    <div class="flex items-center gap-3">
+
+        <div class="w-10 h-10 rounded-xl bg-[#FBEBEF] flex items-center justify-center">
+
+            <svg
+                class="w-5 h-5 text-[#D7385E]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622C17.176 19.29 21 14.591 21 9c0-.647-.052-1.282-.152-1.9z"
+                />
+            </svg>
+
+        </div>
+
+        <div>
+
+            <div class="flex items-center gap-2">
+
+                <h3 class="text-lg font-bold text-gray-900">
+                    Services
+                </h3>
+
+                <span
+                    class="inline-flex min-w-6 items-center justify-center rounded-full bg-[#FBEBEF] px-2 py-0.5 text-xs font-bold text-[#D7385E]"
+                >
+                    {{ $vendor->services->count() }}
+                </span>
+
+            </div>
+
+            <p class="text-sm text-gray-500">
+                Services offered by this vendor
+            </p>
+
+        </div>
+
+    </div>
+
+
+    {{-- Service Actions --}}
+    <div class="flex flex-wrap items-center gap-2">
+
+        {{-- Assign Services --}}
+        <a
+            href="{{ route('vendors.services.create', ['vendor' => $vendor]) }}"
+            class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#D7385E] px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c52f52]"
+        >
+
+            <svg
+                class="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 5v14M5 12h14"
+                />
+            </svg>
+
+            Assign Services
+
+        </a>
+
+
+        {{-- Manage All --}}
+        @if($vendor->services->count())
+
+            <a
+                href="{{ route('vendors.services.index', ['vendor' => $vendor]) }}"
+                class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-gray-900"
+            >
+
+                <svg
+                    class="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M4 6h16M4 12h16M4 18h16"
+                    />
+                </svg>
+
+                Manage All
+
+            </a>
+
+        @endif
+
+    </div>
+
+</div>
+
+
+{{-- Assigned Services --}}
+@if($vendor->services->count())
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+        @foreach($vendor->services as $service)
+
+            <div
+                class="group rounded-xl border border-gray-200 bg-gray-50 p-4 transition hover:border-[#FBEBEF] hover:bg-[#FBEBEF]/30"
+            >
+
+                <div class="flex items-start gap-3">
+
+                    {{-- Service Icon --}}
+                    <div
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FBEBEF] text-[#D7385E]"
+                    >
+
+                        <svg
+                            class="h-5 w-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622C17.176 19.29 21 14.591 21 9c0-.647-.052-1.282-.152-1.9z"
+                            />
+                        </svg>
+
+                    </div>
+
+
+                    {{-- Service Information --}}
+                    <div class="min-w-0 flex-1">
+
+                        <div class="flex items-start justify-between gap-3">
+
+                            <div class="min-w-0">
+
+                                <p class="truncate text-sm font-bold text-gray-900">
+                                    {{ $service->pivot->custom_name ?: $service->name }}
+                                </p>
+
+                                {{-- Original Service Name --}}
+                                @if($service->pivot->custom_name)
+
+                                    <p class="mt-0.5 truncate text-xs text-gray-400">
+                                        Original: {{ $service->name }}
+                                    </p>
+
+                                @endif
+
+                            </div>
+
+
+                            {{-- Status --}}
+                            @if($service->pivot->status)
+
+                                @php
+
+                                    $serviceStatusClasses = match(
+                                        $service->pivot->status
+                                    ) {
+
+                                        'active' =>
+                                            'bg-green-50 text-green-700 border-green-200',
+
+                                        'inactive' =>
+                                            'bg-gray-100 text-gray-600 border-gray-200',
+
+                                        default =>
+                                            'bg-gray-100 text-gray-600 border-gray-200',
+
+                                    };
+
+                                @endphp
+
+                                <span
+                                    class="inline-flex shrink-0 items-center rounded-full border px-2 py-1 text-[10px] font-bold uppercase tracking-wide {{ $serviceStatusClasses }}"
+                                >
+                                    {{ ucfirst($service->pivot->status) }}
+                                </span>
+
+                            @endif
+
+                        </div>
+
+
+                        {{-- Taxonomy --}}
+                        @if($service->taxonomy)
+
+                            <div class="mt-2 flex items-center gap-1.5">
 
                                 <svg
-                                    class="w-5 h-5 text-[#D7385E]"
+                                    class="h-3.5 w-3.5 shrink-0 text-[#D7385E]"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -814,87 +979,120 @@
                                     <path
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622C17.176 19.29 21 14.591 21 9c0-.647-.052-1.282-.152-1.9z"
+                                        stroke-width="1.8"
+                                        d="M7 7h.01M7 3h5l9 9a2 2 0 010 3l-6 6a2 2 0 01-3 0l-9-9V7a4 4 0 014-4z"
                                     />
                                 </svg>
 
-                            </div>
-
-                            <div>
-
-                                <h3 class="text-lg font-bold text-gray-900">
-                                    Services
-                                </h3>
-
-                                <p class="text-sm text-gray-500">
-                                    Services offered by this vendor
-                                </p>
+                                <span class="truncate text-xs font-medium text-gray-500">
+                                    {{ $service->taxonomy->name }}
+                                </span>
 
                             </div>
 
-                        </div>
+                        @endif
+
+                    </div>
+
+                </div>
 
 
-                        <div class="space-y-3">
+                {{-- Vendor Description --}}
+                @if($service->pivot->description)
 
-                            @foreach($vendor->services as $service)
+                    <div class="mt-3 border-t border-gray-200 pt-3">
 
-                                <div class="border border-gray-200 rounded-xl p-4">
+                        <p class="text-xs leading-relaxed text-gray-500">
+                            {{ $service->pivot->description }}
+                        </p>
 
-                                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                    </div>
 
-                                        <div>
+                @elseif($service->description)
 
-                                            <h4 class="font-semibold text-gray-900">
-                                                {{ $service->pivot->custom_name ?: $service->name }}
-                                            </h4>
+                    <div class="mt-3 border-t border-gray-200 pt-3">
 
-                                            @if($service->taxonomy)
-
-                                                <p class="mt-1 text-xs text-gray-500">
-                                                    {{ $service->taxonomy->name }}
-                                                </p>
-
-                                            @endif
-
-                                        </div>
-
-
-                                        @if($service->pivot->status)
-
-                                            <span class="inline-flex self-start px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold">
-                                                {{ ucfirst($service->pivot->status) }}
-                                            </span>
-
-                                        @endif
-
-                                    </div>
-
-
-                                    @if($service->pivot->description)
-
-                                        <p class="mt-3 text-sm text-gray-600">
-                                            {{ $service->pivot->description }}
-                                        </p>
-
-                                    @elseif($service->description)
-
-                                        <p class="mt-3 text-sm text-gray-600">
-                                            {{ $service->description }}
-                                        </p>
-
-                                    @endif
-
-                                </div>
-
-                            @endforeach
-
-                        </div>
+                        <p class="text-xs leading-relaxed text-gray-500">
+                            {{ $service->description }}
+                        </p>
 
                     </div>
 
                 @endif
+
+            </div>
+
+        @endforeach
+
+    </div>
+
+@else
+
+    {{-- Empty State --}}
+    <div
+        class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-5 py-10 text-center"
+    >
+
+        <div
+            class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#FBEBEF] text-[#D7385E]"
+        >
+
+            <svg
+                class="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622C17.176 19.29 21 14.591 21 9c0-.647-.052-1.282-.152-1.9z"
+                />
+            </svg>
+
+        </div>
+
+
+        <h4 class="mt-4 text-sm font-bold text-gray-900">
+            No services assigned
+        </h4>
+
+
+        <p class="mx-auto mt-1 max-w-md text-sm text-gray-500">
+            Assign services related to the taxonomies assigned to this vendor.
+        </p>
+
+
+        <a
+            href="{{ route('vendors.services.create', ['vendor' => $vendor]) }}"
+            class="mt-5 inline-flex items-center justify-center gap-2 rounded-lg bg-[#D7385E] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c52f52]"
+        >
+
+            <svg
+                class="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 5v14M5 12h14"
+                />
+            </svg>
+
+            Assign First Services
+
+        </a>
+
+    </div>
+
+@endif
+
+
+</div>
 
 
                 {{-- ====================================================
@@ -1520,4 +1718,4 @@
 </div>
 
 @endsection
-```
+

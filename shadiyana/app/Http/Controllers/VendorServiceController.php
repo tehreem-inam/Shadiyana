@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use App\Models\Taxonomy;
 use App\Models\Vendor;
 use App\Models\VendorService;
 use Illuminate\Http\RedirectResponse;
@@ -17,10 +18,6 @@ class VendorServiceController extends Controller
     |--------------------------------------------------------------------------
     | Vendor Service Statuses
     |--------------------------------------------------------------------------
-    |
-    | These statuses describe whether the vendor currently offers
-    | the assigned service.
-    |
     */
 
     private const STATUSES = [
@@ -33,9 +30,6 @@ class VendorServiceController extends Controller
     |--------------------------------------------------------------------------
     | Display Vendor Services
     |--------------------------------------------------------------------------
-    |
-    | Shows all services currently assigned to a vendor.
-    |
     */
 
     public function index(Vendor $vendor): View
@@ -44,19 +38,14 @@ class VendorServiceController extends Controller
             'user',
         ]);
 
-
         $vendorServices = VendorService::query()
             ->with([
                 'service.taxonomy',
             ])
-            ->where(
-                'vendor_id',
-                $vendor->id
-            )
+            ->where('vendor_id', $vendor->id)
             ->latest()
             ->paginate(15)
             ->withQueryString();
-
 
         return view(
             'vendors.services.index',
@@ -72,9 +61,6 @@ class VendorServiceController extends Controller
     |--------------------------------------------------------------------------
     | Show Create Form
     |--------------------------------------------------------------------------
-    |
-    | Displays services which can be assigned to the vendor.
-    |
     */
 
     public function create(Vendor $vendor): View
@@ -83,7 +69,6 @@ class VendorServiceController extends Controller
             'user',
         ]);
 
-
         /*
         |--------------------------------------------------------------------------
         | Already Assigned Services
@@ -91,40 +76,79 @@ class VendorServiceController extends Controller
         */
 
         $assignedServiceIds = VendorService::query()
-            ->where(
-                'vendor_id',
-                $vendor->id
-            )
+            ->where('vendor_id', $vendor->id)
             ->pluck('service_id');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Available Taxonomies
+        |--------------------------------------------------------------------------
+        |
+        | Only taxonomies containing at least one available service
+        | are displayed.
+        |
+        */
+
+        $taxonomies = Taxonomy::query()
+            ->whereHas('services', function ($query) use ($assignedServiceIds) {
+
+                $query
+                    ->where('services.status', 'active')
+                    ->when(
+                        $assignedServiceIds->isNotEmpty(),
+                        function ($query) use ($assignedServiceIds) {
+                            $query->whereNotIn(
+                                'services.id',
+                                $assignedServiceIds
+                            );
+                        }
+                    );
+
+            })
+            ->with([
+                'services' => function ($query) use ($assignedServiceIds) {
+
+                    $query
+                        ->where('services.status', 'active')
+                        ->when(
+                            $assignedServiceIds->isNotEmpty(),
+                            function ($query) use ($assignedServiceIds) {
+                                $query->whereNotIn(
+                                    'services.id',
+                                    $assignedServiceIds
+                                );
+                            }
+                        )
+                        ->orderBy('services.name');
+
+                },
+            ])
+            ->orderBy('name')
+            ->get();
 
 
         /*
         |--------------------------------------------------------------------------
         | Available Services
         |--------------------------------------------------------------------------
-        |
-        | Only services which:
-        |
-        | 1. Are not already assigned to this vendor.
-        | 2. Are active globally.
-        |
         */
 
         $services = Service::query()
-            ->where(
-                'status',
-                'active'
-            )
-            ->whereNotIn(
-                'id',
-                $assignedServiceIds
+            ->where('status', 'active')
+            ->when(
+                $assignedServiceIds->isNotEmpty(),
+                function ($query) use ($assignedServiceIds) {
+                    $query->whereNotIn(
+                        'id',
+                        $assignedServiceIds
+                    );
+                }
             )
             ->with([
                 'taxonomy',
             ])
-            ->orderBy(
-                'name'
-            )
+            ->orderBy('name')
             ->get();
 
 
@@ -132,6 +156,7 @@ class VendorServiceController extends Controller
             'vendors.services.create',
             compact(
                 'vendor',
+                'taxonomies',
                 'services'
             )
         );
@@ -140,10 +165,14 @@ class VendorServiceController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Store Vendor Service
+    | Store Vendor Services
     |--------------------------------------------------------------------------
     |
-    | Assign an existing service to a vendor.
+    | Assigns multiple existing services to a vendor.
+    |
+    | IMPORTANT:
+    | taxonomy_ids is OPTIONAL because taxonomy IDs are derived from
+    | the selected services.
     |
     */
 
@@ -152,36 +181,56 @@ class VendorServiceController extends Controller
         Vendor $vendor
     ): RedirectResponse {
 
+        /*
+        |--------------------------------------------------------------------------
+        | Validation
+        |--------------------------------------------------------------------------
+        */
+
         $validated = $request->validate([
 
             /*
             |--------------------------------------------------------------------------
-            | Service
+            | Selected Services
             |--------------------------------------------------------------------------
             */
 
-            'service_id' => [
+            'service_ids' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+
+            'service_ids.*' => [
                 'required',
                 'integer',
+                'distinct',
                 'exists:services,id',
+            ],
 
-                /*
-                |--------------------------------------------------------------------------
-                | Prevent Duplicate Assignment
-                |--------------------------------------------------------------------------
-                */
 
-                Rule::unique(
-                    'vendor_services',
-                    'service_id'
-                )
-                    ->where(
-                        fn ($query) =>
-                            $query->where(
-                                'vendor_id',
-                                $vendor->id
-                            )
-                    ),
+            /*
+            |--------------------------------------------------------------------------
+            | Taxonomy IDs
+            |--------------------------------------------------------------------------
+            |
+            | Optional.
+            |
+            | The controller derives these automatically from the selected
+            | services, so the form does NOT need to submit taxonomy_ids[].
+            |
+            */
+
+            'taxonomy_ids' => [
+                'nullable',
+                'array',
+            ],
+
+            'taxonomy_ids.*' => [
+                'nullable',
+                'integer',
+                'distinct',
+                'exists:taxonomies,id',
             ],
 
 
@@ -200,7 +249,7 @@ class VendorServiceController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | Vendor-Specific Description
+            | Vendor Specific Description
             |--------------------------------------------------------------------------
             */
 
@@ -219,83 +268,194 @@ class VendorServiceController extends Controller
 
             'status' => [
                 'required',
-                Rule::in(
-                    self::STATUSES
-                ),
+                Rule::in(self::STATUSES),
             ],
-
-        ], [
-
-            'service_id.unique' =>
-                'This service is already assigned to this vendor.',
 
         ]);
 
 
         /*
         |--------------------------------------------------------------------------
-        | Verify Service
+        | Normalize Service IDs
+        |--------------------------------------------------------------------------
+        */
+
+        $serviceIds = collect($validated['service_ids'])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Load Selected Services
         |--------------------------------------------------------------------------
         |
-        | Do not allow an inactive global service to be newly assigned.
+        | Only active services are allowed.
         |
         */
 
-        $service = Service::query()
-            ->where(
-                'id',
-                $validated['service_id']
-            )
-            ->where(
-                'status',
-                'active'
-            )
-            ->first();
+        $services = Service::query()
+            ->whereIn('id', $serviceIds)
+            ->where('status', 'active')
+            ->with([
+                'taxonomy',
+            ])
+            ->get();
 
 
-        if (! $service) {
+        /*
+        |--------------------------------------------------------------------------
+        | Verify All Selected Services Exist and Are Active
+        |--------------------------------------------------------------------------
+        */
+
+        if ($services->count() !== $serviceIds->count()) {
 
             return redirect()
                 ->back()
                 ->withInput()
                 ->withErrors([
-                    'service_id' =>
-                        'The selected service is not currently active.',
+                    'service_ids' =>
+                        'One or more selected services are not currently active.',
                 ]);
         }
 
 
         /*
         |--------------------------------------------------------------------------
-        | Create Vendor Service
+        | Derive Taxonomy IDs From Selected Services
+        |--------------------------------------------------------------------------
+        |
+        | There is no need for the form to send taxonomy_ids[].
+        |
+        */
+
+        $derivedTaxonomyIds = $services
+            ->pluck('taxonomy_id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Optional Taxonomy Validation
+        |--------------------------------------------------------------------------
+        |
+        | If taxonomy_ids[] happens to be submitted by the form,
+        | verify that the submitted taxonomies actually match the
+        | selected services.
+        |
+        */
+
+        if ($request->filled('taxonomy_ids')) {
+
+            $submittedTaxonomyIds = collect(
+                $request->input('taxonomy_ids', [])
+            )
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values();
+
+
+            /*
+            |------------------------------------------------------------------
+            | Check Every Service's Taxonomy Is Selected
+            |------------------------------------------------------------------
+            */
+
+            $invalidServices = $services->filter(
+                function ($service) use ($submittedTaxonomyIds) {
+
+                    return ! $submittedTaxonomyIds->contains(
+                        (int) $service->taxonomy_id
+                    );
+                }
+            );
+
+
+            if ($invalidServices->isNotEmpty()) {
+
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->withErrors([
+                        'service_ids' =>
+                            'One or more selected services do not belong to the selected taxonomies.',
+                    ]);
+            }
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Check Already Assigned Services
+        |--------------------------------------------------------------------------
+        */
+
+        $alreadyAssignedServiceIds = VendorService::query()
+            ->where('vendor_id', $vendor->id)
+            ->whereIn('service_id', $serviceIds)
+            ->pluck('service_id');
+
+
+        if ($alreadyAssignedServiceIds->isNotEmpty()) {
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors([
+                    'service_ids' =>
+                        'One or more selected services are already assigned to this vendor.',
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create Vendor Service Assignments
         |--------------------------------------------------------------------------
         */
 
         DB::transaction(function () use (
             $vendor,
+            $serviceIds,
             $validated
         ) {
 
-            VendorService::create([
+            foreach ($serviceIds as $serviceId) {
 
-                'vendor_id' =>
-                    $vendor->id,
+                VendorService::create([
 
-                'service_id' =>
-                    $validated['service_id'],
+                    'vendor_id' =>
+                        $vendor->id,
 
-                'custom_name' =>
-                    $validated['custom_name'] ?? null,
+                    'service_id' =>
+                        $serviceId,
 
-                'description' =>
-                    $validated['description'] ?? null,
+                    'custom_name' =>
+                        $validated['custom_name'] ?? null,
 
-                'status' =>
-                    $validated['status'],
+                    'description' =>
+                        $validated['description'] ?? null,
 
-            ]);
+                    'status' =>
+                        $validated['status'],
+
+                ]);
+            }
         });
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Success
+        |--------------------------------------------------------------------------
+        */
+
+        $count = $serviceIds->count();
 
         return redirect()
             ->route(
@@ -304,7 +464,9 @@ class VendorServiceController extends Controller
             )
             ->with(
                 'success',
-                'Service assigned to vendor successfully.'
+                $count === 1
+                    ? 'Service assigned to vendor successfully.'
+                    : "{$count} services assigned to vendor successfully."
             );
     }
 
@@ -313,10 +475,6 @@ class VendorServiceController extends Controller
     |--------------------------------------------------------------------------
     | Show Edit Form
     |--------------------------------------------------------------------------
-    |
-    | Allows the administrator to modify the vendor-specific
-    | service information.
-    |
     */
 
     public function edit(
@@ -360,10 +518,7 @@ class VendorServiceController extends Controller
         */
 
         $services = Service::query()
-            ->where(
-                'status',
-                'active'
-            )
+            ->where('status', 'active')
             ->where(function ($query) use (
                 $vendor,
                 $vendorService
@@ -378,21 +533,100 @@ class VendorServiceController extends Controller
                                 'vendors.id',
                                 $vendor->id
                             );
-
                         }
                     )
                     ->orWhere(
                         'id',
                         $vendorService->service_id
                     );
-
             })
             ->with([
                 'taxonomy',
             ])
-            ->orderBy(
-                'name'
+            ->orderBy('name')
+            ->get();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Taxonomies
+        |--------------------------------------------------------------------------
+        */
+
+        $taxonomies = Taxonomy::query()
+            ->whereHas(
+                'services',
+                function ($query) use (
+                    $vendor,
+                    $vendorService
+                ) {
+
+                    $query
+                        ->where(
+                            'services.status',
+                            'active'
+                        )
+                        ->where(function ($serviceQuery) use (
+                            $vendor,
+                            $vendorService
+                        ) {
+
+                            $serviceQuery
+                                ->whereDoesntHave(
+                                    'vendors',
+                                    function ($vendorQuery) use ($vendor) {
+
+                                        $vendorQuery->where(
+                                            'vendors.id',
+                                            $vendor->id
+                                        );
+                                    }
+                                )
+                                ->orWhere(
+                                    'services.id',
+                                    $vendorService->service_id
+                                );
+                        });
+                }
             )
+            ->with([
+                'services' => function ($query) use (
+                    $vendor,
+                    $vendorService
+                ) {
+
+                    $query
+                        ->where(
+                            'services.status',
+                            'active'
+                        )
+                        ->where(function ($serviceQuery) use (
+                            $vendor,
+                            $vendorService
+                        ) {
+
+                            $serviceQuery
+                                ->whereDoesntHave(
+                                    'vendors',
+                                    function ($vendorQuery) use ($vendor) {
+
+                                        $vendorQuery->where(
+                                            'vendors.id',
+                                            $vendor->id
+                                        );
+                                    }
+                                )
+                                ->orWhere(
+                                    'services.id',
+                                    $vendorService->service_id
+                                );
+                        })
+                        ->orderBy(
+                            'services.name'
+                        );
+                },
+            ])
+            ->orderBy('name')
             ->get();
 
 
@@ -401,7 +635,8 @@ class VendorServiceController extends Controller
             compact(
                 'vendor',
                 'vendorService',
-                'services'
+                'services',
+                'taxonomies'
             )
         );
     }
@@ -411,9 +646,6 @@ class VendorServiceController extends Controller
     |--------------------------------------------------------------------------
     | Update Vendor Service
     |--------------------------------------------------------------------------
-    |
-    | Updates the vendor-specific service assignment.
-    |
     */
 
     public function update(
@@ -442,12 +674,6 @@ class VendorServiceController extends Controller
 
         $validated = $request->validate([
 
-            /*
-            |--------------------------------------------------------------------------
-            | Service
-            |--------------------------------------------------------------------------
-            */
-
             'service_id' => [
                 'required',
                 'integer',
@@ -469,25 +695,11 @@ class VendorServiceController extends Controller
                     ),
             ],
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Custom Name
-            |--------------------------------------------------------------------------
-            */
-
             'custom_name' => [
                 'nullable',
                 'string',
                 'max:255',
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Description
-            |--------------------------------------------------------------------------
-            */
 
             'description' => [
                 'nullable',
@@ -495,18 +707,9 @@ class VendorServiceController extends Controller
                 'max:50000',
             ],
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Status
-            |--------------------------------------------------------------------------
-            */
-
             'status' => [
                 'required',
-                Rule::in(
-                    self::STATUSES
-                ),
+                Rule::in(self::STATUSES),
             ],
 
         ], [
@@ -519,11 +722,8 @@ class VendorServiceController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Verify Selected Service
+        | Verify Selected Service Is Active
         |--------------------------------------------------------------------------
-        |
-        | The service must still exist and be active.
-        |
         */
 
         $service = Service::query()
@@ -579,6 +779,12 @@ class VendorServiceController extends Controller
         });
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | Success
+        |--------------------------------------------------------------------------
+        */
+
         return redirect()
             ->route(
                 'vendors.services.index',
@@ -595,12 +801,6 @@ class VendorServiceController extends Controller
     |--------------------------------------------------------------------------
     | Remove Vendor Service
     |--------------------------------------------------------------------------
-    |
-    | Removes only the vendor-service assignment.
-    |
-    | IMPORTANT:
-    | The actual Service record is NOT deleted.
-    |
     */
 
     public function destroy(
@@ -624,6 +824,9 @@ class VendorServiceController extends Controller
         |--------------------------------------------------------------------------
         | Delete Assignment
         |--------------------------------------------------------------------------
+        |
+        | The original Service record is NOT deleted.
+        |
         */
 
         DB::transaction(function () use (
@@ -633,6 +836,12 @@ class VendorServiceController extends Controller
             $vendorService->delete();
         });
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Success
+        |--------------------------------------------------------------------------
+        */
 
         return redirect()
             ->route(
@@ -650,9 +859,6 @@ class VendorServiceController extends Controller
     |--------------------------------------------------------------------------
     | Verify Vendor Service Ownership
     |--------------------------------------------------------------------------
-    |
-    | Prevent manipulation of another vendor's service assignment.
-    |
     */
 
     private function ensureVendorServiceBelongsToVendor(
@@ -661,7 +867,7 @@ class VendorServiceController extends Controller
     ): void {
 
         abort_unless(
-            $vendorService->vendor_id === $vendor->id,
+            (int) $vendorService->vendor_id === (int) $vendor->id,
             404
         );
     }

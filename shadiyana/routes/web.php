@@ -16,8 +16,19 @@ use App\Http\Controllers\VendorTaxonomyController;
 use App\Http\Controllers\VendorServiceController;
 use App\Http\Controllers\VendorEventTypeController;
 use App\Http\Controllers\VendorImageController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ListingController;
 
 
+
+
+
+
+Route::get('/', [HomeController::class, 'index'])
+    ->name('home');
+
+
+Route::get('/listings', [ListingController::class, 'index']) ->name('public.listings.index');
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -35,15 +46,6 @@ use App\Http\Controllers\VendorImageController;
 */
 
 
-/*
-|--------------------------------------------------------------------------
-| Home
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/', function () {
-    return view('home');
-})->name('home');
 
 
 /*
@@ -100,12 +102,6 @@ Route::middleware('guest')->group(function () {
 |
 | These routes are available to authenticated users.
 |
-| Roles:
-|
-| - Super Admin
-| - Vendor
-| - Customer
-|
 */
 
 Route::middleware('auth')->group(function () {
@@ -155,9 +151,6 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     | Dashboard
     |--------------------------------------------------------------------------
-    |
-    | Every authenticated user can access the dashboard.
-    |
     */
 
     Route::get(
@@ -168,24 +161,16 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Vendor Taxonomies
+    | Vendor Management Routes
     |--------------------------------------------------------------------------
     |
-    | Vendor Taxonomy routes are intentionally registered ONCE.
+    | Vendor-specific routes that can be accessed by BOTH:
     |
-    | Both Super Admin and Vendor users work with the same vendor-specific
-    | taxonomy URLs:
+    | - Super Admin
+    | - Vendor
     |
-    | /vendors/{vendor}/taxonomies
-    |
-    | Super Admin:
-    | - Can manage taxonomies for any vendor.
-    |
-    | Vendor:
-    | - Should manage only their own vendor taxonomy records.
-    |
-    | The authorization/ownership check should be handled at the
-    | controller/policy level.
+    | The controller/policy should determine whether the authenticated
+    | user is allowed to manage the specified vendor.
     |
     */
 
@@ -193,79 +178,237 @@ Route::middleware('auth')->group(function () {
         ->name('vendors.')
         ->group(function () {
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | Vendor Taxonomies
+            |--------------------------------------------------------------------------
+            */
+
             Route::prefix('{vendor}/taxonomies')
                 ->name('taxonomies.')
                 ->group(function () {
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Vendor Taxonomy Listing
-                    |--------------------------------------------------------------------------
-                    */
 
                     Route::get(
                         '/',
                         [VendorTaxonomyController::class, 'index']
                     )->name('index');
 
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Create Vendor Taxonomy
-                    |--------------------------------------------------------------------------
-                    */
-
                     Route::get(
                         '/create',
                         [VendorTaxonomyController::class, 'create']
                     )->name('create');
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Store Vendor Taxonomy
-                    |--------------------------------------------------------------------------
-                    */
 
                     Route::post(
                         '/',
                         [VendorTaxonomyController::class, 'store']
                     )->name('store');
 
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Edit Vendor Taxonomy
-                    |--------------------------------------------------------------------------
-                    */
-
                     Route::get(
                         '/{vendorTaxonomy}/edit',
                         [VendorTaxonomyController::class, 'edit']
                     )->name('edit');
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Update Vendor Taxonomy
-                    |--------------------------------------------------------------------------
-                    */
 
                     Route::put(
                         '/{vendorTaxonomy}',
                         [VendorTaxonomyController::class, 'update']
                     )->name('update');
 
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Delete Vendor Taxonomy
-                    |--------------------------------------------------------------------------
-                    */
-
                     Route::delete(
                         '/{vendorTaxonomy}',
                         [VendorTaxonomyController::class, 'destroy']
+                    )->name('destroy');
+
+                });
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Vendor Services
+            |--------------------------------------------------------------------------
+            |
+            | Accessible by:
+            |
+            | - Super Admin
+            | - Vendor
+            |
+            */
+
+            Route::prefix('{vendor}/services')
+                ->name('services.')
+                ->group(function () {
+
+                    /*
+                    |------------------------------------------------------------------
+                    | Vendor Services Listing
+                    |------------------------------------------------------------------
+                    */
+
+                    Route::get(
+                        '/',
+                        [VendorServiceController::class, 'index']
+                    )->name('index');
+
+
+                    /*
+                    |------------------------------------------------------------------
+                    | Create Vendor Service
+                    |------------------------------------------------------------------
+                    */
+
+                    Route::get(
+                        '/create',
+                        [VendorServiceController::class, 'create']
+                    )->name('create');
+
+
+                    /*
+                    |------------------------------------------------------------------
+                    | Store Vendor Service
+                    |------------------------------------------------------------------
+                    */
+
+                    Route::post(
+                        '/',
+                        [VendorServiceController::class, 'store']
+                    )->name('store');
+
+
+                    /*
+                    |------------------------------------------------------------------
+                    | Edit Vendor Service
+                    |------------------------------------------------------------------
+                    */
+
+                    Route::get(
+                        '/{vendorService}/edit',
+                        [VendorServiceController::class, 'edit']
+                    )->name('edit');
+
+
+                    /*
+                    |------------------------------------------------------------------
+                    | Update Vendor Service
+                    |------------------------------------------------------------------
+                    */
+
+                    Route::put(
+                        '/{vendorService}',
+                        [VendorServiceController::class, 'update']
+                    )->name('update');
+
+
+                    /*
+                    |------------------------------------------------------------------
+                    | Delete Vendor Service
+                    |------------------------------------------------------------------
+                    */
+
+                    Route::delete(
+                        '/{vendorService}',
+                        [VendorServiceController::class, 'destroy']
+                    )->name('destroy');
+
+
+                    /*
+                    |------------------------------------------------------------------
+                    | Toggle Vendor Service Status
+                    |------------------------------------------------------------------
+                    */
+
+                    Route::patch(
+                        '/{vendorService}/status',
+                        [VendorServiceController::class, 'toggleStatus']
+                    )->name('toggle-status');
+
+                });
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Vendor Event Types
+            |--------------------------------------------------------------------------
+            |
+            | Accessible by:
+            |
+            | - Super Admin
+            | - Vendor
+            |
+            */
+
+            Route::prefix('{vendor}/event-types')
+                ->name('event-types.')
+                ->group(function () {
+
+                    /*
+                    |------------------------------------------------------------------
+                    | Vendor Event Types Listing
+                    |------------------------------------------------------------------
+                    */
+
+                    Route::get(
+                        '/',
+                        [VendorEventTypeController::class, 'index']
+                    )->name('index');
+
+
+                    /*
+                    |------------------------------------------------------------------
+                    | Create Vendor Event Type
+                    |------------------------------------------------------------------
+                    */
+
+                    Route::get(
+                        '/create',
+                        [VendorEventTypeController::class, 'create']
+                    )->name('create');
+
+
+                    /*
+                    |------------------------------------------------------------------
+                    | Store Vendor Event Type
+                    |------------------------------------------------------------------
+                    */
+
+                    Route::post(
+                        '/',
+                        [VendorEventTypeController::class, 'store']
+                    )->name('store');
+
+
+                    /*
+                    |------------------------------------------------------------------
+                    | Edit Vendor Event Type
+                    |------------------------------------------------------------------
+                    */
+
+                    Route::get(
+                        '/{vendorEventType}/edit',
+                        [VendorEventTypeController::class, 'edit']
+                    )->name('edit');
+
+
+                    /*
+                    |------------------------------------------------------------------
+                    | Update Vendor Event Type
+                    |------------------------------------------------------------------
+                    */
+
+                    Route::put(
+                        '/{vendorEventType}',
+                        [VendorEventTypeController::class, 'update']
+                    )->name('update');
+
+
+                    /*
+                    |------------------------------------------------------------------
+                    | Delete Vendor Event Type
+                    |------------------------------------------------------------------
+                    */
+
+                    Route::delete(
+                        '/{vendorEventType}',
+                        [VendorEventTypeController::class, 'destroy']
                     )->name('destroy');
 
                 });
@@ -300,83 +443,35 @@ Route::middleware([
         ->name('users.')
         ->group(function () {
 
-            /*
-            |--------------------------------------------------------------------------
-            | User Listing
-            |--------------------------------------------------------------------------
-            */
-
             Route::get(
                 '/',
                 [UserController::class, 'getUsers']
             )->name('index');
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Create User
-            |--------------------------------------------------------------------------
-            */
 
             Route::get(
                 '/create',
                 [UserController::class, 'createUser']
             )->name('create');
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Store User
-            |--------------------------------------------------------------------------
-            */
-
             Route::post(
                 '/',
                 [UserController::class, 'storeUser']
             )->name('store');
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Show User
-            |--------------------------------------------------------------------------
-            */
 
             Route::get(
                 '/{id}',
                 [UserController::class, 'getUserById']
             )->name('show');
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Edit User
-            |--------------------------------------------------------------------------
-            */
-
             Route::get(
                 '/{id}/edit',
                 [UserController::class, 'editUser']
             )->name('edit');
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Update User
-            |--------------------------------------------------------------------------
-            */
-
             Route::put(
                 '/{id}',
                 [UserController::class, 'updateUser']
             )->name('update');
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Delete User
-            |--------------------------------------------------------------------------
-            */
 
             Route::delete(
                 '/{id}',
@@ -396,23 +491,10 @@ Route::middleware([
         ->name('locations.')
         ->group(function () {
 
-            /*
-            |--------------------------------------------------------------------------
-            | States
-            |--------------------------------------------------------------------------
-            */
-
             Route::resource(
                 'states',
                 StateController::class
             );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Cities
-            |--------------------------------------------------------------------------
-            */
 
             Route::resource(
                 'cities',
@@ -450,9 +532,6 @@ Route::middleware([
     |--------------------------------------------------------------------------
     | Event Type Images
     |--------------------------------------------------------------------------
-    |
-    | Images belonging to an Event Type.
-    |
     */
 
     Route::delete(
@@ -478,19 +557,13 @@ Route::middleware([
     | Vendor Management
     |--------------------------------------------------------------------------
     |
-    | These routes are for Super Admin vendor management.
+    | These routes are ONLY for Super Admin vendor management.
     |
     */
 
     Route::prefix('vendors')
         ->name('vendors.')
         ->group(function () {
-
-            /*
-            |--------------------------------------------------------------------------
-            | Vendor CRUD
-            |--------------------------------------------------------------------------
-            */
 
             Route::get(
                 '/',
@@ -561,17 +634,10 @@ Route::middleware([
 | Vendor Routes
 |--------------------------------------------------------------------------
 |
-| These routes are available only to authenticated Vendors.
+| Vendor-only routes.
 |
-| IMPORTANT:
-|
-| Vendor Taxonomy routes are NOT duplicated here because they are already
-| registered in the authenticated routes section above.
-|
-| This prevents duplicate URI/route-name conflicts.
-|
-| Ownership authorization for the current vendor should be enforced
-| inside the relevant controller/policy.
+| Vendor Services and Vendor Event Types are NOT defined here because
+| they are already registered in the authenticated routes section.
 |
 */
 
@@ -583,85 +649,6 @@ Route::middleware([
     Route::prefix('vendors')
         ->name('vendors.')
         ->group(function () {
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Vendor Services
-            |--------------------------------------------------------------------------
-            */
-
-            Route::get(
-                '/{vendor}/services',
-                [VendorServiceController::class, 'index']
-            )->name('services.index');
-
-            Route::get(
-                '/{vendor}/services/create',
-                [VendorServiceController::class, 'create']
-            )->name('services.create');
-
-            Route::post(
-                '/{vendor}/services',
-                [VendorServiceController::class, 'store']
-            )->name('services.store');
-
-            Route::get(
-                '/{vendor}/services/{vendorService}/edit',
-                [VendorServiceController::class, 'edit']
-            )->name('services.edit');
-
-            Route::put(
-                '/{vendor}/services/{vendorService}',
-                [VendorServiceController::class, 'update']
-            )->name('services.update');
-
-            Route::delete(
-                '/{vendor}/services/{vendorService}',
-                [VendorServiceController::class, 'destroy']
-            )->name('services.destroy');
-
-            Route::patch(
-                '/{vendor}/services/{vendorService}/status',
-                [VendorServiceController::class, 'toggleStatus']
-            )->name('services.toggle-status');
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Vendor Event Types
-            |--------------------------------------------------------------------------
-            */
-
-            Route::get(
-                '/{vendor}/event-types',
-                [VendorEventTypeController::class, 'index']
-            )->name('event-types.index');
-
-            Route::get(
-                '/{vendor}/event-types/create',
-                [VendorEventTypeController::class, 'create']
-            )->name('event-types.create');
-
-            Route::post(
-                '/{vendor}/event-types',
-                [VendorEventTypeController::class, 'store']
-            )->name('event-types.store');
-
-            Route::get(
-                '/{vendor}/event-types/{vendorEventType}/edit',
-                [VendorEventTypeController::class, 'edit']
-            )->name('event-types.edit');
-
-            Route::put(
-                '/{vendor}/event-types/{vendorEventType}',
-                [VendorEventTypeController::class, 'update']
-            )->name('event-types.update');
-
-            Route::delete(
-                '/{vendor}/event-types/{vendorEventType}',
-                [VendorEventTypeController::class, 'destroy']
-            )->name('event-types.destroy');
 
 
             /*
@@ -727,3 +714,4 @@ Route::middleware([
         });
 
 });
+
