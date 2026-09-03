@@ -1095,19 +1095,151 @@ SERVICES
 </div>
 
 
-                {{-- ====================================================
-                    EVENT TYPES
-                ===================================================== --}}
-                @if($vendor->eventTypes->count())
+{{-- ====================================================
+    EVENT TYPES
+===================================================== --}}
+<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-7">
 
-                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-7">
+    {{-- Section Header --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
 
-                        <div class="flex items-center gap-3 mb-5">
+        {{-- Title --}}
+        <div class="flex items-center gap-3">
 
-                            <div class="w-10 h-10 rounded-xl bg-[#FBEBEF] flex items-center justify-center">
+            <div class="w-10 h-10 rounded-xl bg-[#FBEBEF] flex items-center justify-center">
+
+                <svg
+                    class="w-5 h-5 text-[#D7385E]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M8 7V3m8 4V3M5 11h14M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                </svg>
+
+            </div>
+
+            <div>
+
+                <div class="flex items-center gap-2">
+
+                    <h3 class="text-lg font-bold text-gray-900">
+                        Event Types
+                    </h3>
+
+                    <span
+                        class="inline-flex min-w-6 items-center justify-center rounded-full bg-[#FBEBEF] px-2 py-0.5 text-xs font-bold text-[#D7385E]"
+                    >
+                        {{ $vendor->eventTypes->count() }}
+                    </span>
+
+                </div>
+
+                <p class="text-sm text-gray-500">
+                    Event types supported by this vendor
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {{-- Event Type Actions --}}
+        <div class="flex flex-wrap items-center gap-2">
+
+            {{-- Assign Event Types --}}
+            <a
+                href="{{ route('vendors.event-types.create', ['vendor' => $vendor]) }}"
+                class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#D7385E] px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c52f52]"
+            >
+
+                <svg
+                    class="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 5v14M5 12h14"
+                    />
+                </svg>
+
+                Assign Event Types
+
+            </a>
+
+
+            {{-- Manage All --}}
+            @if($vendor->eventTypes->count())
+
+                <a
+                    href="{{ route('vendors.event-types.index', ['vendor' => $vendor]) }}"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-gray-900"
+                >
+
+                    <svg
+                        class="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.8"
+                            d="M4 6h16M4 12h16M4 18h16"
+                        />
+                    </svg>
+
+                    Manage All
+
+                </a>
+
+            @endif
+
+        </div>
+
+    </div>
+
+
+    {{-- Assigned Event Types --}}
+    @if($vendor->eventTypes->count())
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+            @foreach($vendor->eventTypes as $eventType)
+
+                <div
+                    class="group flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 transition hover:border-[#FBEBEF] hover:bg-[#FBEBEF]/30"
+                >
+
+                    {{-- Event Type Image / Icon --}}
+                    <div class="shrink-0">
+
+                        @if($eventType->image)
+
+                            <img
+                                src="{{ asset('storage/' . $eventType->image) }}"
+                                alt="{{ $eventType->name }}"
+                                class="h-11 w-11 rounded-xl object-cover border border-gray-200"
+                            >
+
+                        @else
+
+                            <div
+                                class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#FBEBEF] text-[#D7385E]"
+                            >
 
                                 <svg
-                                    class="w-5 h-5 text-[#D7385E]"
+                                    class="h-5 w-5"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -1115,92 +1247,251 @@ SERVICES
                                     <path
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
-                                        stroke-width="2"
+                                        stroke-width="1.8"
                                         d="M8 7V3m8 4V3M5 11h14M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                                     />
                                 </svg>
 
                             </div>
 
-                            <div>
+                        @endif
 
-                                <h3 class="text-lg font-bold text-gray-900">
-                                    Event Types
-                                </h3>
+                    </div>
 
-                                <p class="text-sm text-gray-500">
-                                    Events supported by this vendor
+
+                    {{-- Event Type Information --}}
+                    <div class="min-w-0 flex-1">
+
+                        <div class="flex items-start justify-between gap-3">
+
+                            <div class="min-w-0">
+
+                                <p class="truncate text-sm font-bold text-gray-900">
+                                    {{ $eventType->name }}
                                 </p>
+
+                                @if($eventType->description)
+
+                                    <p class="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-500">
+                                        {{ $eventType->description }}
+                                    </p>
+
+                                @else
+
+                                    <p class="mt-1 text-xs text-gray-400">
+                                        No description available
+                                    </p>
+
+                                @endif
 
                             </div>
 
-                        </div>
 
-
-                        <div class="flex flex-wrap gap-3">
-
-                            @foreach($vendor->eventTypes as $eventType)
-
-                                <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50">
-
-                                    @if($eventType->image)
-
-                                        <img
-                                            src="{{ asset('storage/' . $eventType->image) }}"
-                                            alt="{{ $eventType->name }}"
-                                            class="w-9 h-9 rounded-lg object-cover"
-                                        >
-
-                                    @else
-
-                                        <div class="w-9 h-9 rounded-lg bg-[#FBEBEF] flex items-center justify-center">
-
-                                            <svg
-                                                class="w-5 h-5 text-[#D7385E]"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M8 7V3m8 4V3M5 11h14M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                                                />
-                                            </svg>
-
-                                        </div>
-
-                                    @endif
-
-                                    <span class="text-sm font-semibold text-gray-800">
-                                        {{ $eventType->name }}
-                                    </span>
-
-                                </div>
-
-                            @endforeach
+                            {{-- Assigned Badge --}}
+                            <span
+                                class="inline-flex shrink-0 items-center rounded-full bg-green-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-green-700"
+                            >
+                                Assigned
+                            </span>
 
                         </div>
 
                     </div>
 
-                @endif
+                </div>
+
+            @endforeach
+
+        </div>
+
+    @else
+
+        {{-- Empty State --}}
+        <div
+            class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-5 py-10 text-center"
+        >
+
+            <div
+                class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#FBEBEF] text-[#D7385E]"
+            >
+
+                <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M8 7V3m8 4V3M5 11h14M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 002 2v10a2 2 0 01-2 2H5z"
+                    />
+                </svg>
+
+            </div>
 
 
-                {{-- ====================================================
-                    GALLERY
-                ===================================================== --}}
-                @if($vendor->images->count())
+            <h4 class="mt-4 text-sm font-bold text-gray-900">
+                No event types assigned
+            </h4>
 
-                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-7">
 
-                        <div class="flex items-center gap-3 mb-5">
+            <p class="mx-auto mt-1 max-w-md text-sm text-gray-500">
+                Assign event types to define the occasions and events this vendor can provide services for.
+            </p>
 
-                            <div class="w-10 h-10 rounded-xl bg-[#FBEBEF] flex items-center justify-center">
+
+            <a
+                href="{{ route('vendors.event-types.create', ['vendor' => $vendor]) }}"
+                class="mt-5 inline-flex items-center justify-center gap-2 rounded-lg bg-[#D7385E] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c52f52]"
+            >
+
+                <svg
+                    class="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 5v14M5 12h14"
+                    />
+                </svg>
+
+                Assign First Event Type
+
+            </a>
+
+        </div>
+
+    @endif
+
+</div>
+
+{{-- ====================================================
+    GALLERY
+===================================================== --}}
+<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-7">
+
+    {{-- ====================================================
+        HEADER
+    ===================================================== --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+
+        <div class="flex items-center gap-3">
+
+            <div class="w-10 h-10 rounded-xl bg-[#FBEBEF] flex items-center justify-center shrink-0">
+                <svg
+                    class="w-5 h-5 text-[#D7385E]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M4 16l4-4a2 2 0 012.828 0L16 17m-2-2l1.172-1.172a2 2 0 012.828 0L20 16M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z"
+                    />
+                </svg>
+            </div>
+
+            <div>
+
+                <div class="flex items-center gap-2">
+
+                    <h3 class="text-lg font-bold text-gray-900">
+                        Gallery
+                    </h3>
+
+                    <span class="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full bg-[#FBEBEF] text-[#D7385E] text-xs font-bold">
+                        {{ $vendor->images->count() }}
+                    </span>
+
+                </div>
+
+                <p class="text-sm text-gray-500">
+                    Photos showcasing this vendor's work
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {{-- Manage Gallery --}}
+        <a
+            href="{{ route('vendors.images.index', ['vendor' => $vendor->id]) }}"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition hover:border-[#D7385E] hover:text-[#D7385E] hover:bg-[#FBEBEF]/40"
+        >
+
+            <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M4 6h16M4 12h16M4 18h16"
+                />
+            </svg>
+
+            Manage Gallery
+
+        </a>
+
+    </div>
+
+
+    {{-- ====================================================
+        IMAGES
+    ===================================================== --}}
+    @if($vendor->images->isNotEmpty())
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+
+            @foreach($vendor->images->take(8) as $image)
+
+                <div
+                    class="group relative aspect-square overflow-hidden rounded-xl border border-gray-200 bg-gray-100"
+                >
+
+                    <img
+                        src="{{ asset('storage/' . $image->image_url) }}"
+                        alt="{{ $image->title ?: $vendor->business_name }}"
+                        class="w-full h-full object-cover transition duration-500 group-hover:scale-105"
+                    >
+
+                    {{-- Hover Overlay --}}
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition duration-300">
+
+                        <div class="absolute bottom-0 left-0 right-0 p-3">
+
+                            @if($image->title)
+
+                                <p class="text-sm font-semibold text-white truncate">
+                                    {{ $image->title }}
+                                </p>
+
+                            @endif
+
+                            <a
+                                href="{{ route('vendors.images.show', [
+                                    'image' => $image->id,
+                                    'vendor' => $vendor->id,
+                                ]) }}"
+                                class="inline-flex items-center gap-1.5 mt-1 text-xs font-semibold text-white hover:text-[#FBEBEF]"
+                            >
+                                View image
 
                                 <svg
-                                    class="w-5 h-5 text-[#D7385E]"
+                                    class="w-3.5 h-3.5"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -1208,49 +1499,120 @@ SERVICES
                                     <path
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M4 16l4-4a2 2 0 012.828 0L16 17m-2-2l1.172-1.172a2 2 0 012.828 0L20 16M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                        stroke-width="1.8"
+                                        d="M9 5l7 7-7 7"
                                     />
                                 </svg>
 
-                            </div>
-
-                            <div>
-
-                                <h3 class="text-lg font-bold text-gray-900">
-                                    Gallery
-                                </h3>
-
-                                <p class="text-sm text-gray-500">
-                                    Vendor images
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-
-                            @foreach($vendor->images as $image)
-
-                                <div class="aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-
-                                    <img
-                                        src="{{ asset('storage/' . $image->path) }}"
-                                        alt="{{ $vendor->business_name }}"
-                                        class="w-full h-full object-cover hover:scale-105 transition duration-300"
-                                    >
-
-                                </div>
-
-                            @endforeach
+                            </a>
 
                         </div>
 
                     </div>
 
-                @endif
+                </div>
+
+            @endforeach
+
+        </div>
+
+
+        {{-- ====================================================
+            VIEW ALL
+        ===================================================== --}}
+        @if($vendor->images->count() > 8)
+
+            <div class="flex justify-center mt-6">
+
+                <a
+                    href="{{ route('vendors.images.index', ['vendor' => $vendor->id]) }}"
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-[#D7385E] hover:text-[#c52f52] transition"
+                >
+
+                    View all {{ $vendor->images->count() }} photos
+
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.8"
+                            d="M9 5l7 7-7 7"
+                        />
+                    </svg>
+
+                </a>
+
+            </div>
+
+        @endif
+
+
+    {{-- ====================================================
+        EMPTY STATE
+    ===================================================== --}}
+    @else
+
+        <div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center">
+
+            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FBEBEF]">
+
+                <svg
+                    class="w-7 h-7 text-[#D7385E]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.6"
+                        d="M4 16l4-4a2 2 0 012.828 0L16 17m-2-2l1.172-1.172a2 2 0 012.828 0L20 16M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                </svg>
+
+            </div>
+
+            <h4 class="mt-4 text-sm font-bold text-gray-900">
+                No gallery images yet
+            </h4>
+
+            <p class="mt-1 text-sm text-gray-500">
+                This vendor hasn't added any gallery photos yet.
+            </p>
+
+            <a
+                href="{{ route('vendors.images.create', ['vendor' => $vendor->id]) }}"
+                class="inline-flex items-center gap-2 mt-5 px-4 py-2.5 rounded-lg bg-[#D7385E] text-white text-sm font-semibold shadow-sm hover:bg-[#c52f52] transition"
+            >
+
+                <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 5v14M5 12h14"
+                    />
+                </svg>
+
+                Add First Image
+
+            </a>
+
+        </div>
+
+    @endif
+
+</div>
 
             </div>
 

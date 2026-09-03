@@ -228,72 +228,124 @@
 
                 </div>
 
+{{-- ========================================================
+    EVENTS
+========================================================= --}}
 
-                {{-- ========================================================
-                    EVENTS
-                ========================================================= --}}
-
-                <div
-                    x-data="{ open: false }"
-                    class="relative"
-                    @mouseenter="open = true"
-                    @mouseleave="open = false"
-                >
-
-                    <button
-                        type="button"
-                        class="flex items-center gap-1.5 py-7 text-[13px] font-medium text-gray-700 transition hover:text-[#D7385E]"
-                    >
-                        Events
-
-                        {{-- SAME ARROW AS VENUES --}}
-
-                       <svg
-    class="h-4 w-4 text-gray-700 transition-transform duration-200"
-    :class="{ 'rotate-180': open }"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+<div
+    x-data="{ open: false }"
+    class="relative"
+    @mouseenter="open = true"
+    @mouseleave="open = false"
 >
-    <path d="M6 9l6 6 6-6" />
-</svg>
-                    </button>
+
+    <button
+        type="button"
+        class="flex items-center gap-1.5 py-7 text-[13px] font-medium text-gray-700 transition hover:text-[#D7385E]"
+    >
+
+        Events
+
+        <svg
+            class="h-4 w-4 text-gray-700 transition-transform duration-200"
+            :class="{ 'rotate-180': open }"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        >
+            <path d="M6 9l6 6 6-6" />
+        </svg>
+
+    </button>
 
 
-                    <div
-                        x-show="open"
-                        x-cloak
-                        x-transition
-                        class="absolute left-1/2 top-full z-50 w-64 -translate-x-1/2 rounded-2xl border border-gray-100 bg-white p-3 shadow-xl"
-                    >
+    {{-- ========================================================
+        EVENTS DROPDOWN
+    ========================================================= --}}
 
-                        @forelse ($eventTypes as $eventType)
+    <div
+        x-show="open"
+        x-cloak
+        x-transition:enter="transition ease-out duration-150"
+        x-transition:enter-start="opacity-0 translate-y-1"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-100"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="absolute left-1/2 top-full z-50 w-72 -translate-x-1/2 rounded-2xl border border-gray-100 bg-white p-3 shadow-xl"
+    >
 
-                            <a
-                                href="{{ route('public.listings.index', [
-                                    'category' => 'events',
-                                    'slug' => $eventType->slug,
-                                ]) }}"
-                                class="block rounded-xl px-4 py-3 text-[13px] text-gray-600 transition hover:bg-[#FBEBEF] hover:text-[#D7385E]"
-                            >
-                                {{ $eventType->name }}
-                            </a>
+        @forelse ($eventTypes as $eventType)
 
-                        @empty
+            <a
+                href="{{ route('events.show', [
+                    'slug' => $eventType->slug,
+                ]) }}"
+                class="group flex items-center justify-between rounded-xl px-4 py-3 text-[13px] text-gray-600 transition hover:bg-[#FBEBEF] hover:text-[#D7385E]"
+            >
 
-                            <p class="px-4 py-3 text-[13px] text-gray-400">
-                                No event types available.
-                            </p>
+                <span>
+                    {{ $eventType->name }}
+                </span>
 
-                        @endforelse
+                <svg
+                    class="h-4 w-4 -translate-x-1 text-gray-300 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:text-[#D7385E] group-hover:opacity-100"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M5 12h14M13 6l6 6-6 6"/>
+                </svg>
 
-                    </div>
+            </a>
 
-                </div>
+        @empty
 
+            <p class="px-4 py-3 text-[13px] text-gray-400">
+                No event types available.
+            </p>
+
+        @endforelse
+
+
+        {{-- ========================================================
+            VIEW ALL EVENTS
+        ========================================================= --}}
+
+        <div class="my-2 border-t border-gray-100"></div>
+
+        <a
+            href="{{ url('/events') }}"
+            class="group flex items-center justify-between rounded-xl px-4 py-3 text-[13px] font-semibold text-[#D7385E] transition hover:bg-[#FBEBEF]"
+        >
+
+            <span>
+                View All Events
+            </span>
+
+            <svg
+                class="h-4 w-4 text-[#D7385E] transition-transform duration-200 group-hover:translate-x-0.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M5 12h14M13 6l6 6-6 6"/>
+            </svg>
+
+        </a>
+
+    </div>
+
+</div>
 
                 {{-- ========================================================
                     AREAS WE SERVE
@@ -336,16 +388,18 @@
                         class="absolute left-1/2 top-full z-50 w-64 -translate-x-1/2 rounded-2xl border border-gray-100 bg-white p-3 shadow-xl"
                     >
 
-                        @forelse ($cities as $city)
+@forelse ($cities as $city)
 
-                            <a
-                                href="#"
-                                class="block rounded-xl px-4 py-3 text-[13px] text-gray-600 transition hover:bg-[#FBEBEF] hover:text-[#D7385E]"
-                            >
-                                {{ $city->name }}
-                            </a>
+<a
+    href="{{ route('public.listings.index', [
+        'city' => $city->id,
+    ]) }}"
+    class="block rounded-xl px-4 py-3 text-[13px] text-gray-600 transition hover:bg-[#FBEBEF] hover:text-[#D7385E]"
+>
+    {{ $city->name }}
+</a>
 
-                        @empty
+@empty
 
                             <p class="px-4 py-3 text-[13px] text-gray-400">
                                 No cities available.

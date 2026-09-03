@@ -57,6 +57,13 @@ class User extends Authenticatable
     return $this->hasOne(Vendor::class);
 }
 
+/**
+ * User's customer profile.
+ */
+public function customerProfile(): HasOne
+{
+    return $this->hasOne(CustomerProfile::class);
+}
     /*
     |--------------------------------------------------------------------------
     | Role Helpers

@@ -12,8 +12,10 @@
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
         <div>
+
             {{-- Breadcrumb --}}
             <div class="mb-2 flex items-center gap-2 text-xs font-medium text-gray-400">
+
                 <a
                     href="{{ url('/') }}"
                     class="transition hover:text-[#D7385E]"
@@ -38,7 +40,9 @@
                 <span class="text-gray-500">
                     Vendors
                 </span>
+
             </div>
+
 
             <h1 class="text-2xl font-extrabold tracking-tight text-gray-900">
                 Vendors
@@ -47,13 +51,16 @@
             <p class="mt-1 text-sm text-gray-500">
                 Manage vendors, business profiles, verification, and vendor status.
             </p>
+
         </div>
+
 
         {{-- Add Vendor --}}
         <a
             href="{{ route('vendors.create') }}"
             class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#D7385E] px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-[#D7385E]/20 transition hover:bg-[#c52f52] focus:outline-none focus:ring-2 focus:ring-[#D7385E]/30"
         >
+
             <svg
                 class="h-4 w-4"
                 fill="none"
@@ -69,6 +76,7 @@
             </svg>
 
             Add Vendor
+
         </a>
 
     </div>
@@ -79,9 +87,11 @@
     ============================================================= --}}
 
     @if(session('success'))
+
         <div
             class="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700"
         >
+
             <svg
                 class="mt-0.5 h-5 w-5 shrink-0"
                 fill="none"
@@ -99,14 +109,18 @@
             <span>
                 {{ session('success') }}
             </span>
+
         </div>
+
     @endif
 
 
     @if(session('error'))
+
         <div
             class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
+
             <svg
                 class="mt-0.5 h-5 w-5 shrink-0"
                 fill="none"
@@ -124,7 +138,9 @@
             <span>
                 {{ session('error') }}
             </span>
+
         </div>
+
     @endif
 
 
@@ -140,6 +156,7 @@
             <div class="flex items-center justify-between">
 
                 <div>
+
                     <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
                         Total Vendors
                     </p>
@@ -147,9 +164,11 @@
                     <p class="mt-2 text-2xl font-extrabold text-gray-900">
                         {{ $vendors->total() }}
                     </p>
+
                 </div>
 
                 <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#FBEBEF] text-[#D7385E]">
+
                     <svg
                         class="h-5 w-5"
                         fill="none"
@@ -163,6 +182,7 @@
                             d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4M9 10h.01M15 10h.01M9 14h.01M15 14h.01"
                         />
                     </svg>
+
                 </div>
 
             </div>
@@ -176,6 +196,7 @@
             <div class="flex items-center justify-between">
 
                 <div>
+
                     <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
                         Pending
                     </p>
@@ -183,9 +204,11 @@
                     <p class="mt-2 text-2xl font-extrabold text-gray-900">
                         {{ $vendors->where('status', 'pending')->count() }}
                     </p>
+
                 </div>
 
                 <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+
                     <svg
                         class="h-5 w-5"
                         fill="none"
@@ -205,7 +228,9 @@
                             r="9"
                             stroke-width="1.8"
                         />
+
                     </svg>
+
                 </div>
 
             </div>
@@ -219,6 +244,7 @@
             <div class="flex items-center justify-between">
 
                 <div>
+
                     <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
                         Verified
                     </p>
@@ -226,9 +252,11 @@
                     <p class="mt-2 text-2xl font-extrabold text-gray-900">
                         {{ $vendors->where('is_verified', true)->count() }}
                     </p>
+
                 </div>
 
                 <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 text-green-600">
+
                     <svg
                         class="h-5 w-5"
                         fill="none"
@@ -242,6 +270,7 @@
                             d="M5 12l4 4L19 6"
                         />
                     </svg>
+
                 </div>
 
             </div>
@@ -255,6 +284,7 @@
             <div class="flex items-center justify-between">
 
                 <div>
+
                     <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
                         Premium
                     </p>
@@ -262,9 +292,11 @@
                     <p class="mt-2 text-2xl font-extrabold text-gray-900">
                         {{ $vendors->where('is_premium', true)->count() }}
                     </p>
+
                 </div>
 
                 <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+
                     <svg
                         class="h-5 w-5"
                         fill="none"
@@ -278,6 +310,7 @@
                             d="M12 3l2.9 5.88 6.49.94-4.7 4.58 1.11 6.47L12 17.82 6.2 20.87l1.11-6.47-4.7-4.58 6.49-.94L12 3z"
                         />
                     </svg>
+
                 </div>
 
             </div>
@@ -303,6 +336,7 @@
             <div class="relative xl:col-span-2">
 
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+
                     <svg
                         class="h-4 w-4 text-gray-400"
                         fill="none"
@@ -315,6 +349,7 @@
                             d="m21 21-4.35-4.35m2.35-5.65a8 8 0 11-16 0 8 8 0 0116 0z"
                         />
                     </svg>
+
                 </div>
 
                 <input
@@ -333,6 +368,7 @@
                 name="status"
                 class="h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-600 outline-none transition focus:border-[#D7385E] focus:bg-white focus:ring-2 focus:ring-[#D7385E]/10"
             >
+
                 <option value="">
                     All Statuses
                 </option>
@@ -352,6 +388,7 @@
                 <option value="suspended" @selected(request('status') === 'suspended')>
                     Suspended
                 </option>
+
             </select>
 
 
@@ -360,6 +397,7 @@
                 name="verification"
                 class="h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-600 outline-none transition focus:border-[#D7385E] focus:bg-white focus:ring-2 focus:ring-[#D7385E]/10"
             >
+
                 <option value="">
                     Verification
                 </option>
@@ -371,6 +409,7 @@
                 <option value="unverified" @selected(request('verification') === 'unverified')>
                     Unverified
                 </option>
+
             </select>
 
 
@@ -379,6 +418,7 @@
                 name="plan"
                 class="h-11 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-600 outline-none transition focus:border-[#D7385E] focus:bg-white focus:ring-2 focus:ring-[#D7385E]/10"
             >
+
                 <option value="">
                     All Vendors
                 </option>
@@ -390,6 +430,7 @@
                 <option value="premium" @selected(request('plan') === 'premium')>
                     Premium
                 </option>
+
             </select>
 
 
@@ -400,6 +441,7 @@
                     type="submit"
                     class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#D7385E] px-4 text-sm font-bold text-white transition hover:bg-[#c52f52]"
                 >
+
                     <svg
                         class="h-4 w-4"
                         fill="none"
@@ -414,15 +456,19 @@
                     </svg>
 
                     Apply Filters
+
                 </button>
 
+
                 @if(request()->hasAny(['search', 'status', 'verification', 'plan']))
+
                     <a
                         href="{{ route('vendors.index') }}"
                         class="inline-flex h-10 items-center justify-center rounded-xl border border-gray-200 px-4 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
                     >
                         Clear
                     </a>
+
                 @endif
 
             </div>
@@ -442,6 +488,7 @@
         <div class="flex flex-col gap-2 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
 
             <div>
+
                 <h2 class="text-sm font-extrabold text-gray-900">
                     All Vendors
                 </h2>
@@ -449,13 +496,17 @@
                 <p class="mt-0.5 text-xs text-gray-400">
                     Manage registered vendor businesses.
                 </p>
+
             </div>
 
+
             @if($vendors->total() > 0)
+
                 <span class="text-xs font-semibold text-gray-400">
                     Showing {{ $vendors->firstItem() }}–{{ $vendors->lastItem() }}
                     of {{ $vendors->total() }}
                 </span>
+
             @endif
 
         </div>
@@ -463,7 +514,10 @@
 
         @if($vendors->count())
 
-            {{-- Desktop Table --}}
+            {{-- ====================================================
+                Desktop Table
+            ===================================================== --}}
+
             <div class="hidden overflow-x-auto lg:block">
 
                 <table class="min-w-full">
@@ -511,22 +565,45 @@
 
                             <tr class="group transition hover:bg-gray-50/70">
 
-                                {{-- Vendor --}}
+                                {{-- ====================================================
+                                    Vendor
+                                ===================================================== --}}
+
                                 <td class="px-5 py-4">
 
                                     <div class="flex items-center gap-3">
 
-                                        {{-- Logo --}}
+                                        {{-- ====================================================
+                                            Vendor Logo
+                                            Click to Preview
+                                        ===================================================== --}}
+
                                         <div class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#FBEBEF] text-sm font-extrabold text-[#D7385E]">
 
                                             @if($vendor->logo_image)
-                                                <img
-                                                    src="{{ asset('storage/' . $vendor->logo_image) }}"
-                                                    alt="{{ $vendor->business_name }}"
-                                                    class="h-full w-full object-cover"
+
+                                                <button
+                                                    type="button"
+                                                    onclick="openImageModal(
+                                                        '{{ asset('storage/' . $vendor->logo_image) }}',
+                                                        '{{ addslashes($vendor->business_name) }}'
+                                                    )"
+                                                    title="View logo"
+                                                    class="group/logo h-full w-full cursor-zoom-in focus:outline-none"
                                                 >
+
+                                                    <img
+                                                        src="{{ asset('storage/' . $vendor->logo_image) }}"
+                                                        alt="{{ $vendor->business_name }}"
+                                                        class="h-full w-full object-cover transition duration-300 group-hover/logo:scale-110"
+                                                    >
+
+                                                </button>
+
                                             @else
+
                                                 {{ strtoupper(substr($vendor->business_name, 0, 1)) }}
+
                                             @endif
 
                                         </div>
@@ -543,11 +620,14 @@
                                                     {{ $vendor->business_name }}
                                                 </a>
 
+
                                                 @if($vendor->is_verified)
+
                                                     <span
                                                         title="Verified"
                                                         class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600"
                                                     >
+
                                                         <svg
                                                             class="h-2.5 w-2.5"
                                                             fill="none"
@@ -561,7 +641,9 @@
                                                                 d="M5 12l4 4L19 6"
                                                             />
                                                         </svg>
+
                                                     </span>
+
                                                 @endif
 
                                             </div>
@@ -570,15 +652,20 @@
                                             <div class="mt-1 flex flex-wrap items-center gap-1.5">
 
                                                 @if($vendor->is_featured)
+
                                                     <span class="rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-600">
                                                         Featured
                                                     </span>
+
                                                 @endif
 
+
                                                 @if($vendor->is_premium)
+
                                                     <span class="rounded-md bg-purple-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-purple-600">
                                                         Premium
                                                     </span>
+
                                                 @endif
 
                                             </div>
@@ -600,9 +687,11 @@
                                         </p>
 
                                         @if($vendor->user->email)
+
                                             <p class="mt-0.5 max-w-[180px] truncate text-xs text-gray-400">
                                                 {{ $vendor->user->email }}
                                             </p>
+
                                         @endif
 
                                     @else
@@ -642,6 +731,7 @@
                                                     r="2.5"
                                                     stroke-width="1.8"
                                                 />
+
                                             </svg>
 
                                             {{ $vendor->city->name }}
@@ -670,6 +760,7 @@
 
                                     @endif
 
+
                                     @if($vendor->whatsapp_number)
 
                                         <p class="mt-0.5 text-xs text-gray-400">
@@ -677,6 +768,7 @@
                                         </p>
 
                                     @endif
+
 
                                     @if(!$vendor->phone_number && !$vendor->whatsapp_number)
 
@@ -693,14 +785,23 @@
                                 <td class="px-5 py-4">
 
                                     @php
+
                                         $statusClasses = match($vendor->status) {
+
                                             'approved' => 'bg-green-50 text-green-700',
+
                                             'pending' => 'bg-amber-50 text-amber-700',
+
                                             'rejected' => 'bg-red-50 text-red-700',
+
                                             'suspended' => 'bg-gray-100 text-gray-600',
+
                                             default => 'bg-gray-100 text-gray-600',
+
                                         };
+
                                     @endphp
+
 
                                     <span
                                         class="inline-flex items-center rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide {{ $statusClasses }}"
@@ -735,6 +836,7 @@
 
                                         </div>
 
+
                                         <p class="text-[10px] text-gray-400">
                                             {{ number_format($vendor->view_count) }} views
                                         </p>
@@ -755,6 +857,7 @@
                                             title="View Vendor"
                                             class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-[#FBEBEF] hover:text-[#D7385E]"
                                         >
+
                                             <svg
                                                 class="h-4 w-4"
                                                 fill="none"
@@ -772,7 +875,9 @@
                                                     r="2.5"
                                                     stroke-width="1.8"
                                                 />
+
                                             </svg>
+
                                         </a>
 
 
@@ -782,6 +887,7 @@
                                             title="Edit Vendor"
                                             class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
                                         >
+
                                             <svg
                                                 class="h-4 w-4"
                                                 fill="none"
@@ -795,6 +901,7 @@
                                                     d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5M17.5 2.5a2.12 2.12 0 013 3L12 14l-4 1 1-4 8.5-8.5z"
                                                 />
                                             </svg>
+
                                         </a>
 
 
@@ -804,6 +911,7 @@
                                             method="POST"
                                             onsubmit="return confirm('Are you sure you want to delete this vendor? This action cannot be undone.')"
                                         >
+
                                             @csrf
                                             @method('DELETE')
 
@@ -812,6 +920,7 @@
                                                 title="Delete Vendor"
                                                 class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-600"
                                             >
+
                                                 <svg
                                                     class="h-4 w-4"
                                                     fill="none"
@@ -825,6 +934,7 @@
                                                         d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6m3 4v8m6-8v8"
                                                     />
                                                 </svg>
+
                                             </button>
 
                                         </form>
@@ -856,16 +966,32 @@
 
                         <div class="flex items-start gap-3">
 
-                            {{-- Logo --}}
+                            {{-- ====================================================
+                                Logo
+                                Click to Preview
+                            ===================================================== --}}
+
                             <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#FBEBEF] text-sm font-extrabold text-[#D7385E]">
 
                                 @if($vendor->logo_image)
 
-                                    <img
-                                        src="{{ asset('storage/' . $vendor->logo_image) }}"
-                                        alt="{{ $vendor->business_name }}"
-                                        class="h-full w-full object-cover"
+                                    <button
+                                        type="button"
+                                        onclick="openImageModal(
+                                            '{{ asset('storage/' . $vendor->logo_image) }}',
+                                            '{{ addslashes($vendor->business_name) }}'
+                                        )"
+                                        title="View logo"
+                                        class="group/mobile-logo h-full w-full cursor-zoom-in focus:outline-none"
                                     >
+
+                                        <img
+                                            src="{{ asset('storage/' . $vendor->logo_image) }}"
+                                            alt="{{ $vendor->business_name }}"
+                                            class="h-full w-full object-cover transition duration-300 group-hover/mobile-logo:scale-110"
+                                        >
+
+                                    </button>
 
                                 @else
 
@@ -899,14 +1025,23 @@
 
                                     {{-- Status --}}
                                     @php
+
                                         $mobileStatusClasses = match($vendor->status) {
+
                                             'approved' => 'bg-green-50 text-green-700',
+
                                             'pending' => 'bg-amber-50 text-amber-700',
+
                                             'rejected' => 'bg-red-50 text-red-700',
+
                                             'suspended' => 'bg-gray-100 text-gray-600',
+
                                             default => 'bg-gray-100 text-gray-600',
+
                                         };
+
                                     @endphp
+
 
                                     <span
                                         class="shrink-0 rounded-lg px-2 py-1 text-[9px] font-bold uppercase {{ $mobileStatusClasses }}"
@@ -921,21 +1056,29 @@
                                 <div class="mt-2 flex flex-wrap gap-1.5">
 
                                     @if($vendor->is_verified)
+
                                         <span class="rounded-md bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold text-blue-600">
                                             Verified
                                         </span>
+
                                     @endif
 
+
                                     @if($vendor->is_featured)
+
                                         <span class="rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-600">
                                             Featured
                                         </span>
+
                                     @endif
 
+
                                     @if($vendor->is_premium)
+
                                         <span class="rounded-md bg-purple-50 px-1.5 py-0.5 text-[9px] font-bold text-purple-600">
                                             Premium
                                         </span>
+
                                     @endif
 
                                 </div>
@@ -949,21 +1092,30 @@
                         <div class="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-gray-50 p-3">
 
                             <div>
+
                                 <p class="text-[9px] font-bold uppercase tracking-wider text-gray-400">
                                     Owner
                                 </p>
 
                                 <p class="mt-1 truncate text-xs font-semibold text-gray-700">
+
                                     @if($vendor->user)
+
                                         {{ trim($vendor->user->first_name . ' ' . $vendor->user->last_name) }}
+
                                     @else
+
                                         No owner
+
                                     @endif
+
                                 </p>
+
                             </div>
 
 
                             <div>
+
                                 <p class="text-[9px] font-bold uppercase tracking-wider text-gray-400">
                                     City
                                 </p>
@@ -971,24 +1123,30 @@
                                 <p class="mt-1 truncate text-xs font-semibold text-gray-700">
                                     {{ $vendor->city?->name ?? 'Not specified' }}
                                 </p>
+
                             </div>
 
 
                             <div>
+
                                 <p class="text-[9px] font-bold uppercase tracking-wider text-gray-400">
                                     Rating
                                 </p>
 
                                 <p class="mt-1 text-xs font-semibold text-gray-700">
                                     ★ {{ number_format((float) $vendor->avg_rating, 1) }}
+
                                     <span class="font-normal text-gray-400">
                                         ({{ $vendor->review_count }})
                                     </span>
+
                                 </p>
+
                             </div>
 
 
                             <div>
+
                                 <p class="text-[9px] font-bold uppercase tracking-wider text-gray-400">
                                     Views
                                 </p>
@@ -996,6 +1154,7 @@
                                 <p class="mt-1 text-xs font-semibold text-gray-700">
                                     {{ number_format($vendor->view_count) }}
                                 </p>
+
                             </div>
 
                         </div>
@@ -1008,6 +1167,7 @@
                                 href="{{ route('vendors.show', $vendor) }}"
                                 class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold text-gray-600 transition hover:bg-gray-50"
                             >
+
                                 <svg
                                     class="h-3.5 w-3.5"
                                     fill="none"
@@ -1025,9 +1185,11 @@
                                         r="2.5"
                                         stroke-width="1.8"
                                     />
+
                                 </svg>
 
                                 View
+
                             </a>
 
 
@@ -1035,6 +1197,7 @@
                                 href="{{ route('vendors.edit', $vendor) }}"
                                 class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#FBEBEF] px-3 py-2 text-xs font-bold text-[#D7385E] transition hover:bg-[#f8dce3]"
                             >
+
                                 <svg
                                     class="h-3.5 w-3.5"
                                     fill="none"
@@ -1044,11 +1207,12 @@
                                     <path
                                         stroke-linecap="round"
                                         stroke-width="1.8"
-                                        d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5M17.5 2.5a2.12 2.12 0 013 3L12 14l-4 1 1-4 8.5-8.5z"
+                                        d="M11 4H6a2 2 0 002-2v12a2 2 0 002 2h12a2 2 0 002-2v-5M17.5 2.5a2.12 2.12 0 013 3L12 14l-4 1 1-4 8.5-8.5z"
                                     />
                                 </svg>
 
                                 Edit
+
                             </a>
 
 
@@ -1057,6 +1221,7 @@
                                 method="POST"
                                 onsubmit="return confirm('Are you sure you want to delete this vendor? This action cannot be undone.')"
                             >
+
                                 @csrf
                                 @method('DELETE')
 
@@ -1064,6 +1229,7 @@
                                     type="submit"
                                     class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
                                 >
+
                                     <svg
                                         class="h-4 w-4"
                                         fill="none"
@@ -1077,6 +1243,7 @@
                                             d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6m3 4v8m6-8v8"
                                         />
                                     </svg>
+
                                 </button>
 
                             </form>
@@ -1101,6 +1268,7 @@
                 </div>
 
             @endif
+
 
         @else
 
@@ -1128,16 +1296,24 @@
 
                 </div>
 
+
                 <h3 class="mt-4 text-sm font-extrabold text-gray-900">
                     No vendors found
                 </h3>
 
+
                 <p class="mx-auto mt-1 max-w-sm text-xs leading-5 text-gray-500">
+
                     @if(request()->hasAny(['search', 'status', 'verification', 'plan']))
+
                         No vendors match your current filters. Try adjusting your search or filters.
+
                     @else
+
                         There are no vendors registered yet.
+
                     @endif
+
                 </p>
 
 
@@ -1156,6 +1332,7 @@
                         href="{{ route('vendors.create') }}"
                         class="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-[#D7385E] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#c52f52]"
                     >
+
                         <svg
                             class="h-4 w-4"
                             fill="none"
@@ -1170,6 +1347,7 @@
                         </svg>
 
                         Add First Vendor
+
                     </a>
 
                 @endif
@@ -1181,5 +1359,169 @@
     </div>
 
 </div>
+
+
+{{-- ============================================================
+    IMAGE PREVIEW MODAL
+============================================================= --}}
+
+<div
+    id="imagePreviewModal"
+    class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/80 p-4 sm:p-6"
+    onclick="closeImageModal(event)"
+>
+
+    {{-- Modal Container --}}
+    <div
+        class="relative flex max-h-[95vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        onclick="event.stopPropagation()"
+    >
+
+        {{-- ====================================================
+            Modal Header
+        ===================================================== --}}
+
+        <div class="flex items-center justify-between border-b border-gray-100 bg-white px-4 py-3 sm:px-5">
+
+            <div class="min-w-0 pr-4">
+
+                <p
+                    id="imagePreviewTitle"
+                    class="truncate text-sm font-bold text-gray-900"
+                >
+                    Image Preview
+                </p>
+
+                <p class="mt-0.5 text-xs text-gray-400">
+                    Vendor logo
+                </p>
+
+            </div>
+
+
+            {{-- Close Button --}}
+            <button
+                type="button"
+                onclick="closeImageModal()"
+                title="Close"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#D7385E]/20"
+            >
+
+                <svg
+                    class="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M6 6l12 12M18 6L6 18"
+                    />
+                </svg>
+
+            </button>
+
+        </div>
+
+
+        {{-- ====================================================
+            Large Image Area
+        ===================================================== --}}
+
+        <div class="flex min-h-[300px] flex-1 items-center justify-center bg-gray-950 p-4 sm:p-8">
+
+            <img
+                id="imagePreview"
+                src=""
+                alt=""
+                class="max-h-[78vh] max-w-full rounded-lg object-contain shadow-2xl"
+            >
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{{-- ============================================================
+    IMAGE PREVIEW JAVASCRIPT
+============================================================= --}}
+
+<script>
+
+    function openImageModal(imageUrl, title = 'Image Preview') {
+
+        const modal = document.getElementById('imagePreviewModal');
+        const image = document.getElementById('imagePreview');
+        const imageTitle = document.getElementById('imagePreviewTitle');
+
+        if (!modal || !image || !imageTitle) {
+            return;
+        }
+
+        image.src = imageUrl;
+        image.alt = title;
+        imageTitle.textContent = title;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        document.body.classList.add('overflow-hidden');
+    }
+
+
+    function closeImageModal(event = null) {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Only close when:
+        | - Close button is clicked
+        | - Escape key is pressed
+        | - Backdrop itself is clicked
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            event &&
+            event.target !== event.currentTarget
+        ) {
+            return;
+        }
+
+        const modal = document.getElementById('imagePreviewModal');
+        const image = document.getElementById('imagePreview');
+
+        if (!modal || !image) {
+            return;
+        }
+
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+
+        image.src = '';
+        image.alt = '';
+
+        document.body.classList.remove('overflow-hidden');
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ESC Key
+    |--------------------------------------------------------------------------
+    */
+
+    document.addEventListener('keydown', function (event) {
+
+        if (event.key === 'Escape') {
+            closeImageModal();
+        }
+
+    });
+
+</script>
 
 @endsection

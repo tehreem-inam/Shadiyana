@@ -16,27 +16,11 @@ use App\Http\Controllers\VendorTaxonomyController;
 use App\Http\Controllers\VendorServiceController;
 use App\Http\Controllers\VendorEventTypeController;
 use App\Http\Controllers\VendorImageController;
+use App\Http\Controllers\PackageController;
+
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ListingController;
-
-
-
-
-
-
-Route::get('/', [HomeController::class, 'index'])
-    ->name('home');
-
-
-Route::get('/listings', [ListingController::class, 'index']) ->name('public.listings.index');
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Shadiyana Web Application Routes
-|
-*/
+use App\Http\Controllers\EventLandingController;
 
 
 /*
@@ -44,6 +28,47 @@ Route::get('/listings', [ListingController::class, 'index']) ->name('public.list
 | Public Routes
 |--------------------------------------------------------------------------
 */
+
+
+/*
+|--------------------------------------------------------------------------
+| Homepage
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/',
+    [HomeController::class, 'index']
+)->name('home');
+
+
+/*
+|--------------------------------------------------------------------------
+| Public Vendor Listings
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/listings',
+    [ListingController::class, 'index']
+)->name('public.listings.index');
+
+
+/*
+|--------------------------------------------------------------------------
+| Public Event Landing Pages
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/events',
+    [EventLandingController::class, 'index']
+)->name('events.index');
+
+Route::get(
+    '/events/{slug}',
+    [EventLandingController::class, 'show']
+)->name('events.show');
 
 
 
@@ -81,26 +106,19 @@ Route::middleware('guest')->group(function () {
     | Registration
     |--------------------------------------------------------------------------
     */
+Route::get('/vendor/register', [AuthController::class, 'showVendorRegister'])
+    ->name('vendor.register');
 
-    Route::get(
-        '/register',
-        [AuthController::class, 'showRegister']
-    )->name('register');
-
-    Route::post(
-        '/register',
-        [AuthController::class, 'register']
-    )->name('register.store');
-
+Route::post('/vendor/register', [AuthController::class, 'registerVendor'])
+    ->name('vendor.register.store');
 });
-
 
 /*
 |--------------------------------------------------------------------------
 | Authenticated Routes
 |--------------------------------------------------------------------------
 |
-| These routes are available to authenticated users.
+| Routes available to authenticated users.
 |
 */
 
@@ -161,31 +179,34 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Vendor Management Routes
+    | Package Management
     |--------------------------------------------------------------------------
     |
-    | Vendor-specific routes that can be accessed by BOTH:
+    | Vendor      -> only their own packages
+    | Super Admin -> all packages
     |
-    | - Super Admin
-    | - Vendor
-    |
-    | The controller/policy should determine whether the authenticated
-    | user is allowed to manage the specified vendor.
-    |
+    */
+
+    Route::resource(
+        'vendors/{vendor}/packages',
+        PackageController::class
+    )
+        ->whereNumber('vendor')
+        ->names('vendors.packages');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vendor Taxonomies
+    |--------------------------------------------------------------------------
     */
 
     Route::prefix('vendors')
         ->name('vendors.')
         ->group(function () {
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Vendor Taxonomies
-            |--------------------------------------------------------------------------
-            */
-
             Route::prefix('{vendor}/taxonomies')
+                ->whereNumber('vendor')
                 ->name('taxonomies.')
                 ->group(function () {
 
@@ -226,95 +247,42 @@ Route::middleware('auth')->group(function () {
             |--------------------------------------------------------------------------
             | Vendor Services
             |--------------------------------------------------------------------------
-            |
-            | Accessible by:
-            |
-            | - Super Admin
-            | - Vendor
-            |
             */
 
             Route::prefix('{vendor}/services')
+                ->whereNumber('vendor')
                 ->name('services.')
                 ->group(function () {
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Vendor Services Listing
-                    |------------------------------------------------------------------
-                    */
 
                     Route::get(
                         '/',
                         [VendorServiceController::class, 'index']
                     )->name('index');
 
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Create Vendor Service
-                    |------------------------------------------------------------------
-                    */
-
                     Route::get(
                         '/create',
                         [VendorServiceController::class, 'create']
                     )->name('create');
-
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Store Vendor Service
-                    |------------------------------------------------------------------
-                    */
 
                     Route::post(
                         '/',
                         [VendorServiceController::class, 'store']
                     )->name('store');
 
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Edit Vendor Service
-                    |------------------------------------------------------------------
-                    */
-
                     Route::get(
                         '/{vendorService}/edit',
                         [VendorServiceController::class, 'edit']
                     )->name('edit');
-
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Update Vendor Service
-                    |------------------------------------------------------------------
-                    */
 
                     Route::put(
                         '/{vendorService}',
                         [VendorServiceController::class, 'update']
                     )->name('update');
 
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Delete Vendor Service
-                    |------------------------------------------------------------------
-                    */
-
                     Route::delete(
                         '/{vendorService}',
                         [VendorServiceController::class, 'destroy']
                     )->name('destroy');
-
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Toggle Vendor Service Status
-                    |------------------------------------------------------------------
-                    */
 
                     Route::patch(
                         '/{vendorService}/status',
@@ -328,83 +296,37 @@ Route::middleware('auth')->group(function () {
             |--------------------------------------------------------------------------
             | Vendor Event Types
             |--------------------------------------------------------------------------
-            |
-            | Accessible by:
-            |
-            | - Super Admin
-            | - Vendor
-            |
             */
 
             Route::prefix('{vendor}/event-types')
+                ->whereNumber('vendor')
                 ->name('event-types.')
                 ->group(function () {
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Vendor Event Types Listing
-                    |------------------------------------------------------------------
-                    */
 
                     Route::get(
                         '/',
                         [VendorEventTypeController::class, 'index']
                     )->name('index');
 
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Create Vendor Event Type
-                    |------------------------------------------------------------------
-                    */
-
                     Route::get(
                         '/create',
                         [VendorEventTypeController::class, 'create']
                     )->name('create');
-
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Store Vendor Event Type
-                    |------------------------------------------------------------------
-                    */
 
                     Route::post(
                         '/',
                         [VendorEventTypeController::class, 'store']
                     )->name('store');
 
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Edit Vendor Event Type
-                    |------------------------------------------------------------------
-                    */
-
                     Route::get(
                         '/{vendorEventType}/edit',
                         [VendorEventTypeController::class, 'edit']
                     )->name('edit');
 
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Update Vendor Event Type
-                    |------------------------------------------------------------------
-                    */
-
                     Route::put(
                         '/{vendorEventType}',
                         [VendorEventTypeController::class, 'update']
                     )->name('update');
-
-
-                    /*
-                    |------------------------------------------------------------------
-                    | Delete Vendor Event Type
-                    |------------------------------------------------------------------
-                    */
 
                     Route::delete(
                         '/{vendorEventType}',
@@ -412,6 +334,137 @@ Route::middleware('auth')->group(function () {
                     )->name('destroy');
 
                 });
+
+        });
+
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| Vendor Gallery Routes
+|--------------------------------------------------------------------------
+|
+| Vendor is selected through the query string:
+|
+| /vendors/images?vendor=9
+| /vendors/images/create?vendor=9
+| /vendors/images/15?vendor=9
+| /vendors/images/15/edit?vendor=9
+|
+| Both Vendor and Super Admin can use these routes.
+| Authorization is handled inside VendorImageController.
+|
+*/
+
+Route::middleware('auth')->group(function () {
+
+    Route::prefix('vendors')
+        ->name('vendors.')
+        ->group(function () {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Gallery Index
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get(
+                '/images',
+                [VendorImageController::class, 'index']
+            )->name('images.index');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Create Gallery Image
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get(
+                '/images/create',
+                [VendorImageController::class, 'create']
+            )->name('images.create');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Store Gallery Images
+            |--------------------------------------------------------------------------
+            */
+
+            Route::post(
+                '/images',
+                [VendorImageController::class, 'store']
+            )->name('images.store');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Reorder Gallery Images
+            |--------------------------------------------------------------------------
+            */
+
+            Route::post(
+                '/images/reorder',
+                [VendorImageController::class, 'reorder']
+            )->name('images.reorder');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Show Gallery Image
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get(
+                '/images/{image}',
+                [VendorImageController::class, 'show']
+            )
+                ->whereNumber('image')
+                ->name('images.show');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Edit Gallery Image
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get(
+                '/images/{image}/edit',
+                [VendorImageController::class, 'edit']
+            )
+                ->whereNumber('image')
+                ->name('images.edit');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update Gallery Image
+            |--------------------------------------------------------------------------
+            */
+
+            Route::put(
+                '/images/{image}',
+                [VendorImageController::class, 'update']
+            )
+                ->whereNumber('image')
+                ->name('images.update');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Gallery Image
+            |--------------------------------------------------------------------------
+            */
+
+            Route::delete(
+                '/images/{image}',
+                [VendorImageController::class, 'destroy']
+            )
+                ->whereNumber('image')
+                ->name('images.destroy');
 
         });
 
@@ -431,7 +484,6 @@ Route::middleware([
     'auth',
     'role:superadmin',
 ])->group(function () {
-
 
     /*
     |--------------------------------------------------------------------------
@@ -565,40 +617,103 @@ Route::middleware([
         ->name('vendors.')
         ->group(function () {
 
+            /*
+            |--------------------------------------------------------------------------
+            | Vendor Index
+            |--------------------------------------------------------------------------
+            */
+
             Route::get(
                 '/',
                 [VendorController::class, 'index']
             )->name('index');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Create Vendor
+            |--------------------------------------------------------------------------
+            */
 
             Route::get(
                 '/create',
                 [VendorController::class, 'create']
             )->name('create');
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | Store Vendor
+            |--------------------------------------------------------------------------
+            */
+
             Route::post(
                 '/',
                 [VendorController::class, 'store']
             )->name('store');
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | Show Vendor
+            |--------------------------------------------------------------------------
+            |
+            | Admin vendor details.
+            |
+            | Example:
+            |
+            | /vendors/12
+            |
+            */
+
             Route::get(
                 '/{vendor}',
                 [VendorController::class, 'show']
-            )->name('show');
+            )
+                ->whereNumber('vendor')
+                ->name('show');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Edit Vendor
+            |--------------------------------------------------------------------------
+            */
 
             Route::get(
                 '/{vendor}/edit',
                 [VendorController::class, 'edit']
-            )->name('edit');
+            )
+                ->whereNumber('vendor')
+                ->name('edit');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update Vendor
+            |--------------------------------------------------------------------------
+            */
 
             Route::put(
                 '/{vendor}',
                 [VendorController::class, 'update']
-            )->name('update');
+            )
+                ->whereNumber('vendor')
+                ->name('update');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Vendor
+            |--------------------------------------------------------------------------
+            */
 
             Route::delete(
                 '/{vendor}',
                 [VendorController::class, 'destroy']
-            )->name('destroy');
+            )
+                ->whereNumber('vendor')
+                ->name('destroy');
 
 
             /*
@@ -610,7 +725,9 @@ Route::middleware([
             Route::delete(
                 '/{vendor}/logo',
                 [VendorController::class, 'destroyLogo']
-            )->name('logo.destroy');
+            )
+                ->whereNumber('vendor')
+                ->name('logo.destroy');
 
 
             /*
@@ -622,96 +739,36 @@ Route::middleware([
             Route::delete(
                 '/{vendor}/cover',
                 [VendorController::class, 'destroyCover']
-            )->name('cover.destroy');
+            )
+                ->whereNumber('vendor')
+                ->name('cover.destroy');
 
         });
 
 });
-
-
 /*
 |--------------------------------------------------------------------------
-| Vendor Routes
+| Public Vendor Profile
 |--------------------------------------------------------------------------
 |
-| Vendor-only routes.
+| Public vendor profile using the vendor slug.
 |
-| Vendor Services and Vendor Event Types are NOT defined here because
-| they are already registered in the authenticated routes section.
+| Examples:
+|
+| /vendors/arena
+| /vendors/hifsa-khan-salon
+|
+| This route is intentionally placed AFTER:
+|
+| /vendors/images
+| /vendors/images/...
+| /vendors/{vendor}        (admin numeric route)
 |
 */
 
-Route::middleware([
-    'auth',
-    'role:vendor',
-])->group(function () {
-
-    Route::prefix('vendors')
-        ->name('vendors.')
-        ->group(function () {
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Vendor Images / Gallery
-            |--------------------------------------------------------------------------
-            */
-
-            Route::get(
-                '/{vendor}/images',
-                [VendorImageController::class, 'index']
-            )->name('images.index');
-
-            Route::get(
-                '/{vendor}/images/create',
-                [VendorImageController::class, 'create']
-            )->name('images.create');
-
-            Route::post(
-                '/{vendor}/images',
-                [VendorImageController::class, 'store']
-            )->name('images.store');
-
-            Route::get(
-                '/{vendor}/images/{image}/edit',
-                [VendorImageController::class, 'edit']
-            )->name('images.edit');
-
-            Route::put(
-                '/{vendor}/images/{image}',
-                [VendorImageController::class, 'update']
-            )->name('images.update');
-
-            Route::delete(
-                '/{vendor}/images/{image}',
-                [VendorImageController::class, 'destroy']
-            )->name('images.destroy');
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Vendor Image Status
-            |--------------------------------------------------------------------------
-            */
-
-            Route::patch(
-                '/{vendor}/images/{image}/status',
-                [VendorImageController::class, 'toggleStatus']
-            )->name('images.toggle-status');
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Vendor Image Sort Order
-            |--------------------------------------------------------------------------
-            */
-
-            Route::patch(
-                '/{vendor}/images/{image}/sort-order',
-                [VendorImageController::class, 'updateSortOrder']
-            )->name('images.sort-order');
-
-        });
-
-});
-
+Route::get(
+    '/vendors/{slug}',
+    [ListingController::class, 'show']
+)
+    ->where('slug', '[A-Za-z][A-Za-z0-9-]*')
+    ->name('public.vendors.show');

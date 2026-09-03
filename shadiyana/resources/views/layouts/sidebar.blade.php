@@ -725,32 +725,33 @@
                     @endif
 
 
-                    {{-- Packages --}}
-                    @if(Route::has('vendors.packages.index'))
-                        <a
-                            href="{{ route('vendors.packages.index', ['vendor' => $currentVendor]) }}"
-                            class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition
-                            {{
-                                request()->routeIs('vendors.packages.*')
-                                    ? 'bg-[#FBEBEF] text-[#D7385E]'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                            }}"
-                        >
+{{-- ====================================================
+    Packages
+===================================================== --}}
+@if(Route::has('vendors.packages.index'))
+    <a
+        href="{{ route('vendors.packages.index', ['vendor' => $currentVendor]) }}"
+        class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition
+        {{
+            request()->routeIs('vendors.packages.*')
+                ? 'bg-[#FBEBEF] text-[#D7385E]'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+        }}"
+    >
 
-                            <span
-                                class="h-2 w-2 rounded-full
-                                {{
-                                    request()->routeIs('vendors.packages.*')
-                                        ? 'bg-[#D7385E]'
-                                        : 'bg-gray-300'
-                                }}"
-                            ></span>
+        <span
+            class="h-2 w-2 rounded-full
+            {{
+                request()->routeIs('vendors.packages.*')
+                    ? 'bg-[#D7385E]'
+                    : 'bg-gray-300'
+            }}"
+        ></span>
 
-                            Packages
+        Packages
 
-                        </a>
-                    @endif
-
+    </a>
+@endif
 
                     {{-- Availability --}}
                     @if(Route::has('vendors.availability.index'))

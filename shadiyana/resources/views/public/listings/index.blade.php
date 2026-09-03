@@ -1,15 +1,25 @@
 @extends('layouts.public')
 
+
 @section(
     'title',
-    $taxonomy
-        ? ($category
-            ? $category->name . ' - ' . $taxonomy->name
-            : $taxonomy->name)
-        : ($category?->name ?? 'Wedding Vendors')
+
+    $service
+        ? $service->name
+        : (
+            $taxonomy
+                ? (
+                    $category
+                        ? $category->name . ' - ' . $taxonomy->name
+                        : $taxonomy->name
+                )
+                : ($category?->name ?? 'Wedding Vendors')
+        )
 )
 
+
 @section('content')
+
 
     {{-- ============================================================
         PUBLIC NAVBAR
@@ -64,6 +74,8 @@
                 "
             >
 
+                {{-- Home --}}
+
                 <a
                     href="{{ url('/') }}"
                     class="
@@ -89,10 +101,16 @@
                 </svg>
 
 
-                @if($category)
+                {{-- ==================================================
+                    SERVICE BREADCRUMB
+                =================================================== --}}
+
+                @if($service)
 
                     <a
-                        href="{{ url('/listings?category=' . $category->slug) }}"
+                        href="{{ route('public.listings.index', [
+                            'category' => 'services',
+                        ]) }}"
                         class="
                             font-medium
                             text-gray-600
@@ -100,13 +118,9 @@
                             hover:text-[#D7385E]
                         "
                     >
-                        {{ $category->name }}
+                        Services
                     </a>
 
-                @endif
-
-
-                @if($taxonomy)
 
                     <svg
                         class="h-3.5 w-3.5 text-gray-300 sm:h-4 sm:w-4"
@@ -115,15 +129,62 @@
                     >
                         <path
                             fill-rule="evenodd"
-                            d="M7.21 14.77a.75.75 0 01.02-1.06L10.94 10 7.23 6.29a.75.75 0 111.06-1.06l4.24 4.24a.75.75 0 010 1.06l-4.24 4.24a.75.75 0 01-1.08 0z"
+                            d="M7.21 14.77a.75.75 0 01.02-1.06L10.94 10 7.23 6.29a.75.75 0 111.06-1.06l4.24 4.24a.75.75 0 010 1.06l-4.24-4.24a.75.75 0 01-1.08 0z"
                             clip-rule="evenodd"
                         />
                     </svg>
 
 
                     <span class="font-semibold text-gray-900">
-                        {{ $taxonomy->name }}
+                        {{ $service->name }}
                     </span>
+
+
+                {{-- ==================================================
+                    TAXONOMY / CATEGORY BREADCRUMB
+                =================================================== --}}
+
+                @else
+
+                    @if($category)
+
+                        <a
+                            href="{{ route('public.listings.index', [
+                                'category' => $category->slug,
+                            ]) }}"
+                            class="
+                                font-medium
+                                text-gray-600
+                                transition
+                                hover:text-[#D7385E]
+                            "
+                        >
+                            {{ $category->name }}
+                        </a>
+
+                    @endif
+
+
+                    @if($taxonomy)
+
+                        <svg
+                            class="h-3.5 w-3.5 text-gray-300 sm:h-4 sm:w-4"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M7.21 14.77a.75.75 0 01.02-1.06L10.94 10 7.23 6.29a.75.75 0 111.06-1.06l4.24 4.24a.75.75 0 010 1.06l-4.24 4.24a.75.75 0 01-1.08 0z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+
+
+                        <span class="font-semibold text-gray-900">
+                            {{ $taxonomy->name }}
+                        </span>
+
+                    @endif
 
                 @endif
 
@@ -149,6 +210,8 @@
 
                 <div>
 
+                    {{-- Page Title --}}
+
                     <h1
                         class="
                             text-2xl
@@ -159,9 +222,17 @@
                             lg:text-4xl
                         "
                     >
-                        {{ $taxonomy?->name ?? $category?->name ?? 'Wedding Vendors' }}
+
+                        {{ $service?->name
+                            ?? $taxonomy?->name
+                            ?? $category?->name
+                            ?? 'Wedding Vendors'
+                        }}
+
                     </h1>
 
+
+                    {{-- Page Description --}}
 
                     <p
                         class="
@@ -175,18 +246,31 @@
                         "
                     >
 
-                        @if($taxonomy && $category)
+                        @if($service)
 
-                            Discover {{ $taxonomy->name }}
-                            vendors under {{ $category->name }}.
+                            Discover trusted
+                            <span class="font-medium text-gray-700">
+                                {{ $service->name }}
+                            </span>
+                            vendors for your special day.
+
+                        @elseif($taxonomy && $category)
+
+                            Discover
+                            {{ $taxonomy->name }}
+                            vendors under
+                            {{ $category->name }}.
 
                         @elseif($category)
 
-                            Discover the best {{ $category->name }} vendors.
+                            Discover the best
+                            {{ $category->name }}
+                            vendors.
 
                         @else
 
-                            Discover trusted wedding vendors for your special day.
+                            Discover trusted wedding vendors
+                            for your special day.
 
                         @endif
 
@@ -195,7 +279,9 @@
                 </div>
 
 
-                {{-- Desktop vendor count --}}
+                {{-- ==================================================
+                    DESKTOP VENDOR COUNT
+                =================================================== --}}
 
                 <div
                     class="
@@ -339,6 +425,8 @@
                         "
                     >
 
+                        {{-- Result Count --}}
+
                         <p
                             class="
                                 text-xs
@@ -370,11 +458,15 @@
                         </p>
 
 
+                        {{-- Sort Form --}}
+
                         <form
                             method="GET"
                             action="{{ url('/listings') }}"
                             class="flex items-center gap-2"
                         >
+
+                            {{-- Preserve Category --}}
 
                             @if($categorySlug)
 
@@ -387,6 +479,8 @@
                             @endif
 
 
+                            {{-- Preserve Slug --}}
+
                             @if($taxonomySlug)
 
                                 <input
@@ -397,6 +491,8 @@
 
                             @endif
 
+
+                            {{-- Preserve City --}}
 
                             @if(request('city'))
 
@@ -451,28 +547,39 @@
 
                                 <option
                                     value="relevance"
-                                    @selected(request('sort', 'relevance') === 'relevance')
+                                    @selected(
+                                        request('sort', 'relevance') === 'relevance'
+                                    )
                                 >
                                     Relevance
                                 </option>
 
+
                                 <option
                                     value="rating"
-                                    @selected(request('sort') === 'rating')
+                                    @selected(
+                                        request('sort') === 'rating'
+                                    )
                                 >
                                     Highest Rated
                                 </option>
 
+
                                 <option
                                     value="reviews"
-                                    @selected(request('sort') === 'reviews')
+                                    @selected(
+                                        request('sort') === 'reviews'
+                                    )
                                 >
                                     Most Reviewed
                                 </option>
 
+
                                 <option
                                     value="newest"
-                                    @selected(request('sort') === 'newest')
+                                    @selected(
+                                        request('sort') === 'newest'
+                                    )
                                 >
                                     Newest
                                 </option>
@@ -536,6 +643,8 @@
                             "
                         >
 
+                            {{-- Empty State Icon --}}
+
                             <div
                                 class="
                                     mx-auto
@@ -550,27 +659,67 @@
                                 "
                             >
 
-                                <svg
-                                    class="h-8 w-8"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.7"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M3 21h18M5 21V7a2 2 0 012-2h10a2 2 0 012 2v14M8 9h1M8 13h1M8 17h1M15 9h1M15 13h1M15 17h1"
-                                    />
-                                </svg>
+                                @if($service)
+
+                                    {{-- Service Icon --}}
+
+                                    <svg
+                                        class="h-8 w-8"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="1.7"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M9 7V5a3 3 0 016 0v2m-9 0h12a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2z"
+                                        />
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M9 12h6"
+                                        />
+                                    </svg>
+
+                                @else
+
+                                    {{-- Vendor Icon --}}
+
+                                    <svg
+                                        class="h-8 w-8"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="1.7"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M3 21h18M5 21V7a2 2 0 012-2h10a2 2 0 012 2v14M8 9h1M8 13h1M8 17h1M15 9h1M15 13h1M15 17h1"
+                                        />
+                                    </svg>
+
+                                @endif
 
                             </div>
 
 
-                            <h2 class="mt-5 text-xl font-bold text-gray-900">
+                            {{-- Empty State Heading --}}
+
+                            <h2
+                                class="
+                                    mt-5
+                                    text-xl
+                                    font-bold
+                                    text-gray-900
+                                "
+                            >
                                 No vendors found
                             </h2>
 
+
+                            {{-- Empty State Description --}}
 
                             <p
                                 class="
@@ -583,7 +732,16 @@
                                 "
                             >
 
-                                @if($taxonomy)
+                                @if($service)
+
+                                    No vendors are currently available
+                                    for
+
+                                    <strong class="text-gray-700">
+                                        {{ $service->name }}
+                                    </strong>.
+
+                                @elseif($taxonomy)
 
                                     No vendors are currently available in
 
@@ -607,6 +765,8 @@
 
                             </p>
 
+
+                            {{-- Back Home --}}
 
                             <a
                                 href="{{ url('/') }}"
@@ -648,7 +808,9 @@
                     "
                 >
 
-                    @include('public.listings.partials.filters')
+                    @include(
+                        'public.listings.partials.filters'
+                    )
 
                 </aside>
 
@@ -673,7 +835,9 @@
         "
     >
 
-        {{-- Dark overlay --}}
+        {{-- ========================================================
+            DARK BACKDROP
+        ========================================================= --}}
 
         <div
             id="mobileFilterBackdrop"
@@ -687,7 +851,9 @@
         ></div>
 
 
-        {{-- Filter drawer --}}
+        {{-- ========================================================
+            FILTER DRAWER
+        ========================================================= --}}
 
         <div
             id="mobileFilterDrawer"
@@ -708,7 +874,9 @@
             "
         >
 
-            {{-- Mobile filter header --}}
+            {{-- ====================================================
+                MOBILE FILTER HEADER
+            ===================================================== --}}
 
             <div
                 class="
@@ -744,6 +912,8 @@
 
                 </div>
 
+
+                {{-- Close Button --}}
 
                 <button
                     type="button"
@@ -783,13 +953,18 @@
             </div>
 
 
-            {{-- Actual filter --}}
+            {{-- ====================================================
+                ACTUAL FILTER
+            ===================================================== --}}
 
             <div class="p-4">
 
-                @include('public.listings.partials.filters', [
-                    'mobile' => true,
-                ])
+                @include(
+                    'public.listings.partials.filters',
+                    [
+                        'mobile' => true,
+                    ]
+                )
 
             </div>
 
@@ -804,22 +979,35 @@
 
     <script>
 
+        /*
+        |--------------------------------------------------------------------------
+        | Open Mobile Filter
+        |--------------------------------------------------------------------------
+        */
+
         function openMobileFilter() {
 
-            const overlay = document.getElementById('mobileFilterOverlay');
-            const drawer = document.getElementById('mobileFilterDrawer');
+            const overlay =
+                document.getElementById('mobileFilterOverlay');
+
+            const drawer =
+                document.getElementById('mobileFilterDrawer');
+
 
             if (!overlay || !drawer) {
                 return;
             }
 
+
             overlay.classList.remove('hidden');
 
             document.body.classList.add('overflow-hidden');
 
+
             requestAnimationFrame(() => {
 
                 drawer.classList.remove('translate-x-full');
+
                 drawer.classList.add('translate-x-0');
 
             });
@@ -827,19 +1015,32 @@
         }
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | Close Mobile Filter
+        |--------------------------------------------------------------------------
+        */
+
         function closeMobileFilter() {
 
-            const overlay = document.getElementById('mobileFilterOverlay');
-            const drawer = document.getElementById('mobileFilterDrawer');
+            const overlay =
+                document.getElementById('mobileFilterOverlay');
+
+            const drawer =
+                document.getElementById('mobileFilterDrawer');
+
 
             if (!overlay || !drawer) {
                 return;
             }
 
+
             drawer.classList.remove('translate-x-0');
+
             drawer.classList.add('translate-x-full');
 
             document.body.classList.remove('overflow-hidden');
+
 
             setTimeout(() => {
 
@@ -850,16 +1051,26 @@
         }
 
 
-        document.addEventListener('keydown', function (event) {
+        /*
+        |--------------------------------------------------------------------------
+        | Escape Key
+        |--------------------------------------------------------------------------
+        */
 
-            if (event.key === 'Escape') {
+        document.addEventListener(
+            'keydown',
+            function (event) {
 
-                closeMobileFilter();
+                if (event.key === 'Escape') {
+
+                    closeMobileFilter();
+
+                }
 
             }
-
-        });
+        );
 
     </script>
+
 
 @endsection

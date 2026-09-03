@@ -13,319 +13,180 @@ use Illuminate\View\View;
 
 class VendorEventTypeController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Display Vendor Event Types
-    |--------------------------------------------------------------------------
-    |
-    | Displays all event types currently assigned to the vendor.
-    |
-    */
+public function index(Request $request, Vendor $vendor): View
+{
+    $this->ensureVendorAccess($vendor);
 
-    public function index(Vendor $vendor): View
-    {
-        $vendor->load([
-            'user',
+    $query = $vendor->eventTypes()
+        ->withPivot([
+            'id',
+            'created_at',
         ]);
 
-        $vendorEventTypes = VendorEventType::query()
-            ->with([
-                'eventType',
-            ])
-            ->where(
-                'vendor_id',
-                $vendor->id
-            )
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+    if ($request->filled('search')) {
+        $search = trim($request->input('search'));
 
-        return view(
-            'vendors.event-types.index',
-            compact(
-                'vendor',
-                'vendorEventTypes'
-            )
-        );
+        $query->where(function ($q) use ($search) {
+            $q->where(
+                'event_types.name',
+                'ilike',
+                "%{$search}%"
+            );
+        });
     }
 
+    $query->orderBy('event_types.sort_order')
+        ->orderBy('event_types.name');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Show Create Form
-    |--------------------------------------------------------------------------
-    |
-    | Displays active event types which have not already been
-    | assigned to this vendor.
-    |
-    */
+    $eventTypes = $query
+        ->paginate(15)
+        ->withQueryString();
+
+    return view(
+        'vendors.event-types.index',
+        compact('vendor', 'eventTypes')
+    );
+}
 
     public function create(Vendor $vendor): View
     {
-        $vendor->load([
-            'user',
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Already Assigned Event Types
-        |--------------------------------------------------------------------------
-        */
+        $this->ensureSuperAdmin();
 
         $assignedEventTypeIds = VendorEventType::query()
-            ->where(
-                'vendor_id',
-                $vendor->id
-            )
+            ->where('vendor_id', $vendor->id)
             ->pluck('event_type_id');
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Available Event Types
-        |--------------------------------------------------------------------------
-        |
-        | Only active global event types which are not already
-        | assigned to this vendor are available.
-        |
-        */
-
         $eventTypes = EventType::query()
-            ->where(
-                'status',
-                'active'
+            ->where('status', 'active')
+            ->when(
+                $assignedEventTypeIds->isNotEmpty(),
+                function ($query) use ($assignedEventTypeIds) {
+                    $query->whereNotIn('id', $assignedEventTypeIds);
+                }
             )
-            ->whereNotIn(
-                'id',
-                $assignedEventTypeIds
-            )
-            ->orderBy(
-                'sort_order'
-            )
-            ->orderBy(
-                'name'
-            )
+            ->orderBy('sort_order')
+            ->orderBy('name')
             ->get();
-
 
         return view(
             'vendors.event-types.create',
-            compact(
-                'vendor',
-                'eventTypes'
-            )
+            compact('vendor', 'eventTypes')
         );
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Store Vendor Event Type
-    |--------------------------------------------------------------------------
-    |
-    | Assigns an existing event type to the vendor.
-    |
-    */
 
     public function store(
         Request $request,
         Vendor $vendor
     ): RedirectResponse {
+        $this->ensureSuperAdmin();
 
         $validated = $request->validate([
-
-            /*
-            |--------------------------------------------------------------------------
-            | Event Type
-            |--------------------------------------------------------------------------
-            */
-
-            'event_type_id' => [
+            'event_type_ids' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+            'event_type_ids.*' => [
                 'required',
                 'integer',
+                'distinct',
                 'exists:event_types,id',
-
-                /*
-                |--------------------------------------------------------------------------
-                | Prevent Duplicate Assignment
-                |--------------------------------------------------------------------------
-                */
-
-                Rule::unique(
-                    'vendor_event_types',
-                    'event_type_id'
-                )->where(
-                    fn ($query) =>
-                        $query->where(
-                            'vendor_id',
-                            $vendor->id
-                        )
-                ),
             ],
-
-        ], [
-
-            'event_type_id.unique' =>
-                'This event type is already assigned to this vendor.',
-
         ]);
 
+        $eventTypeIds = collect($validated['event_type_ids'])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Verify Event Type Is Active
-        |--------------------------------------------------------------------------
-        |
-        | An inactive global event type should not be newly
-        | assigned to a vendor.
-        |
-        */
+        $activeEventTypes = EventType::query()
+            ->whereIn('id', $eventTypeIds)
+            ->where('status', 'active')
+            ->pluck('id');
 
-        $eventType = EventType::query()
-            ->where(
-                'id',
-                $validated['event_type_id']
-            )
-            ->where(
-                'status',
-                'active'
-            )
-            ->first();
-
-
-        if (! $eventType) {
-
+        if ($activeEventTypes->count() !== $eventTypeIds->count()) {
             return redirect()
                 ->back()
                 ->withInput()
                 ->withErrors([
-                    'event_type_id' =>
-                        'The selected event type is not currently active.',
+                    'event_type_ids' =>
+                        'One or more selected event types are not currently active.',
                 ]);
         }
 
+        $alreadyAssignedIds = VendorEventType::query()
+            ->where('vendor_id', $vendor->id)
+            ->whereIn('event_type_id', $eventTypeIds)
+            ->pluck('event_type_id');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Create Assignment
-        |--------------------------------------------------------------------------
-        */
+        if ($alreadyAssignedIds->isNotEmpty()) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors([
+                    'event_type_ids' =>
+                        'One or more selected event types are already assigned to this vendor.',
+                ]);
+        }
 
-        DB::transaction(function () use (
-            $vendor,
-            $validated
-        ) {
+        DB::transaction(
+            function () use ($vendor, $eventTypeIds) {
+                foreach ($eventTypeIds as $eventTypeId) {
+                    DB::table('vendor_event_types')->insert([
+                        'vendor_id' => $vendor->id,
+                        'event_type_id' => $eventTypeId,
+                        'created_at' => now(),
+                    ]);
+                }
+            }
+        );
 
-            VendorEventType::create([
-
-                'vendor_id' =>
-                    $vendor->id,
-
-                'event_type_id' =>
-                    $validated['event_type_id'],
-
-            ]);
-        });
-
+        $count = $eventTypeIds->count();
 
         return redirect()
-            ->route(
-                'vendors.event-types.index',
-                $vendor
-            )
+            ->route('vendors.event-types.index', $vendor)
             ->with(
                 'success',
-                'Event type assigned to vendor successfully.'
+                $count === 1
+                    ? 'Event type assigned to vendor successfully.'
+                    : "{$count} event types assigned to vendor successfully."
             );
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Show Edit Form
-    |--------------------------------------------------------------------------
-    |
-    | Since the pivot contains only vendor_id and event_type_id,
-    | editing means replacing the assigned event type.
-    |
-    */
 
     public function edit(
         Vendor $vendor,
         VendorEventType $vendorEventType
     ): View {
-
-        /*
-        |--------------------------------------------------------------------------
-        | Verify Ownership
-        |--------------------------------------------------------------------------
-        */
+        $this->ensureSuperAdmin();
 
         $this->ensureVendorEventTypeBelongsToVendor(
             $vendor,
             $vendorEventType
         );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Load Relationship
-        |--------------------------------------------------------------------------
-        */
-
-        $vendorEventType->load([
-            'eventType',
-        ]);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Available Event Types
-        |--------------------------------------------------------------------------
-        |
-        | Include:
-        |
-        | 1. Current event type.
-        | 2. Other active event types not assigned to this vendor.
-        |
-        */
+        $vendorEventType->load(['eventType']);
 
         $eventTypes = EventType::query()
-            ->where(
-                'status',
-                'active'
-            )
-            ->where(function ($query) use (
-                $vendor,
-                $vendorEventType
-            ) {
-
+            ->where('status', 'active')
+            ->where(function ($query) use ($vendor, $vendorEventType) {
                 $query
                     ->whereDoesntHave(
                         'vendors',
                         function ($vendorQuery) use ($vendor) {
-
                             $vendorQuery->where(
                                 'vendors.id',
                                 $vendor->id
                             );
-
                         }
                     )
                     ->orWhere(
                         'id',
                         $vendorEventType->event_type_id
                     );
-
             })
-            ->orderBy(
-                'sort_order'
-            )
-            ->orderBy(
-                'name'
-            )
+            ->orderBy('sort_order')
+            ->orderBy('name')
             ->get();
-
 
         return view(
             'vendors.event-types.edit',
@@ -337,47 +198,23 @@ class VendorEventTypeController extends Controller
         );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Update Vendor Event Type
-    |--------------------------------------------------------------------------
-    |
-    | Replaces the event type assigned to the vendor.
-    |
-    */
-
     public function update(
         Request $request,
         Vendor $vendor,
         VendorEventType $vendorEventType
     ): RedirectResponse {
-
-        /*
-        |--------------------------------------------------------------------------
-        | Verify Ownership
-        |--------------------------------------------------------------------------
-        */
+        $this->ensureSuperAdmin();
 
         $this->ensureVendorEventTypeBelongsToVendor(
             $vendor,
             $vendorEventType
         );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validation
-        |--------------------------------------------------------------------------
-        */
-
         $validated = $request->validate([
-
             'event_type_id' => [
                 'required',
                 'integer',
                 'exists:event_types,id',
-
                 Rule::unique(
                     'vendor_event_types',
                     'event_type_id'
@@ -393,35 +230,17 @@ class VendorEventTypeController extends Controller
                         $vendorEventType->id
                     ),
             ],
-
         ], [
-
             'event_type_id.unique' =>
                 'This event type is already assigned to this vendor.',
-
         ]);
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Verify Event Type Is Active
-        |--------------------------------------------------------------------------
-        */
-
         $eventType = EventType::query()
-            ->where(
-                'id',
-                $validated['event_type_id']
-            )
-            ->where(
-                'status',
-                'active'
-            )
+            ->where('id', $validated['event_type_id'])
+            ->where('status', 'active')
             ->first();
 
-
         if (! $eventType) {
-
             return redirect()
                 ->back()
                 ->withInput()
@@ -431,111 +250,110 @@ class VendorEventTypeController extends Controller
                 ]);
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Update Assignment
-        |--------------------------------------------------------------------------
-        */
-
-        DB::transaction(function () use (
-            $vendorEventType,
-            $validated
-        ) {
-
-            $vendorEventType->update([
-
-                'event_type_id' =>
-                    $validated['event_type_id'],
-
-            ]);
-        });
-
+        DB::transaction(
+            function () use (
+                $vendorEventType,
+                $validated
+            ) {
+                DB::table('vendor_event_types')
+                    ->where('id', $vendorEventType->id)
+                    ->update([
+                        'event_type_id' =>
+                            $validated['event_type_id'],
+                    ]);
+            }
+        );
 
         return redirect()
-            ->route(
-                'vendors.event-types.index',
-                $vendor
-            )
+            ->route('vendors.event-types.index', $vendor)
             ->with(
                 'success',
                 'Vendor event type updated successfully.'
             );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Remove Vendor Event Type
-    |--------------------------------------------------------------------------
-    |
-    | Removes only the relationship between the vendor and event type.
-    |
-    | The global EventType record is NEVER deleted.
-    |
-    */
-
     public function destroy(
         Vendor $vendor,
         VendorEventType $vendorEventType
     ): RedirectResponse {
-
-        /*
-        |--------------------------------------------------------------------------
-        | Verify Ownership
-        |--------------------------------------------------------------------------
-        */
+        $this->ensureSuperAdmin();
 
         $this->ensureVendorEventTypeBelongsToVendor(
             $vendor,
             $vendorEventType
         );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Delete Assignment
-        |--------------------------------------------------------------------------
-        */
-
-        DB::transaction(function () use (
-            $vendorEventType
-        ) {
-
-            $vendorEventType->delete();
-        });
-
+        DB::transaction(
+            function () use ($vendorEventType) {
+                DB::table('vendor_event_types')
+                    ->where('id', $vendorEventType->id)
+                    ->delete();
+            }
+        );
 
         return redirect()
-            ->route(
-                'vendors.event-types.index',
-                $vendor
-            )
+            ->route('vendors.event-types.index', $vendor)
             ->with(
                 'success',
                 'Event type removed from vendor successfully.'
             );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Verify Ownership
-    |--------------------------------------------------------------------------
-    |
-    | Prevents a vendor event type belonging to another vendor
-    | from being accessed through a manipulated URL.
-    |
-    */
-
     private function ensureVendorEventTypeBelongsToVendor(
         Vendor $vendor,
         VendorEventType $vendorEventType
     ): void {
+        abort_unless(
+            (int) $vendorEventType->vendor_id ===
+            (int) $vendor->id,
+            404
+        );
+    }
+
+    private function ensureVendorAccess(
+        Vendor $vendor
+    ): void {
+        $user = auth()->user();
+
+        if (
+            $user &&
+            in_array(
+                $user->role,
+                ['super_admin', 'superadmin'],
+                true
+            )
+        ) {
+            return;
+        }
+
+        if (
+            $user &&
+            $user->role === 'vendor'
+        ) {
+            abort_unless(
+                (int) $vendor->user_id ===
+                (int) $user->id,
+                403
+            );
+
+            return;
+        }
+
+        abort(403);
+    }
+
+    private function ensureSuperAdmin(): void
+    {
+        $user = auth()->user();
 
         abort_unless(
-            $vendorEventType->vendor_id === $vendor->id,
-            404
+            $user &&
+            in_array(
+                $user->role,
+                ['super_admin', 'superadmin'],
+                true
+            ),
+            403
         );
     }
 }

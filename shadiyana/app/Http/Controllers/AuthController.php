@@ -2,115 +2,73 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CustomerProfile;
 use App\Models\User;
+use App\Models\Vendor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AuthController extends Controller
 {
-  
-    // | Show Login Page
+    /*
+    |--------------------------------------------------------------------------
+    | Login
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Show login page.
+     */
     public function showLogin(): View
     {
         return view('auth.login');
     }
 
-    // | Login
-  
+    /**
+     * Authenticate user.
+     */
+    public function login(Request $request): RedirectResponse
+    {
+        $credentials = $request->validate([
+            'phone_number' => [
+                'required',
+                'string',
+                'max:30',
+            ],
+            'password' => [
+                'required',
+                'string',
+            ],
+        ]);
 
-public function login(Request $request): RedirectResponse
-{
-   
-    $validated = $request->validate([
-        'login' => [
-            'required',
-            'string',
-        ],
+        if (!Auth::attempt([
+            'phone_number' => $credentials['phone_number'],
+            'password' => $credentials['password'],
+        ])) {
+            return back()
+                ->withErrors([
+                    'phone_number' => 'The provided phone number or password is incorrect.',
+                ])
+                ->withInput($request->except('password'));
+        }
 
-        'password' => [
-            'required',
-            'string',
-        ],
-    ]);
+        $request->session()->regenerate();
 
-    // | Determine Login Type
+        /** @var User $user */
+        $user = Auth::user();
 
-    $login = trim($validated['login']);
+        $user->update([
+            'last_login_at' => now(),
+        ]);
 
-    $field = filter_var($login, FILTER_VALIDATE_EMAIL)
-        ? 'email'
-        : 'phone_number';
-
-    // | Build Credentials
-
-    $credentials = [
-        $field => $login,
-        'password' => $validated['password'],
-        'status' => 'active',
-    ];
-
-
-    // | Remember Me
-
-
-    $remember = $request->boolean('remember');
-
-
-
-    // | Attempt Authentication
-
-
-    if (!Auth::guard('web')->attempt($credentials, $remember)) {
-
-        return back()
-            ->withErrors([
-                'login' => 'The provided email/phone number or password is incorrect.',
-            ])
-            ->withInput(
-                $request->only('login')
-            );
+        return redirect()
+            ->intended(route('dashboard'))
+            ->with('success', 'Welcome back!');
     }
-    
-    /*
-    |--------------------------------------------------------------------------
-    | Regenerate Session
-    |--------------------------------------------------------------------------
-    */
-
-    $request->session()->regenerate();
-
-    /*
-    |--------------------------------------------------------------------------
-    | Get Authenticated User
-    |--------------------------------------------------------------------------
-    */
-
-    /** @var \App\Models\User $user */
-
-    $user = Auth::guard('web')->user();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Update Last Login
-    |--------------------------------------------------------------------------
-    */
-
-    $user->update([
-        'last_login_at' => now(),
-    ]);
-  /*
-    |--------------------------------------------------------------------------
-    | Role-Based Dashboard
-    |--------------------------------------------------------------------------
-    */
-
-    return redirect()
-        ->intended(route('dashboard'));
-}
 
     /*
     |--------------------------------------------------------------------------
@@ -118,60 +76,42 @@ public function login(Request $request): RedirectResponse
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * Log the authenticated user out.
+     */
     public function logout(Request $request): RedirectResponse
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Logout From Web Guard
-        |--------------------------------------------------------------------------
-        */
-
-        Auth::guard('web')->logout();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Invalidate Session
-        |--------------------------------------------------------------------------
-        */
-
+Auth::guard('web')->logout();
         $request->session()->invalidate();
-        
-        /*
-        |--------------------------------------------------------------------------
-        | Regenerate CSRF Token
-        |--------------------------------------------------------------------------
-        */
-
         $request->session()->regenerateToken();
-
 
         return redirect()
             ->route('login')
-            ->with(
-                'success',
-                'You have been logged out successfully.'
-            );
+            ->with('success', 'You have been logged out successfully.');
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Show Register Page
+    | Customer Registration
     |--------------------------------------------------------------------------
-   */
+    */
+
+    /**
+     * Show customer registration page.
+     *
+     * Kept separate from vendor registration.
+     */
     public function showRegister(): View
     {
         return view('auth.register');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Register
-    |--------------------------------------------------------------------------
-  */
-    public function register(Request $request): RedirectResponse
+    /**
+     * Register a customer.
+     */
+    public function registerCustomer(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-
             'first_name' => [
                 'required',
                 'string',
@@ -182,13 +122,6 @@ public function login(Request $request): RedirectResponse
                 'required',
                 'string',
                 'max:100',
-            ],
-
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-                'unique:users,email',
             ],
 
             'phone_number' => [
@@ -204,78 +137,211 @@ public function login(Request $request): RedirectResponse
                 'max:10',
             ],
 
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+                'unique:users,email',
+            ],
+
             'password' => [
                 'required',
                 'string',
                 'min:8',
                 'confirmed',
             ],
-
         ]);
 
+        DB::transaction(function () use ($validated): void {
+            $user = User::create([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'phone_number' => $validated['phone_number'],
+                'country_code' => $validated['country_code'],
+                'email' => $validated['email'] ?? null,
+                'password' => $validated['password'],
+                'role' => 'customer',
+                'is_verified' => false,
+                'status' => 'active',
+            ]);
+
+            CustomerProfile::create([
+                'user_id' => $user->id,
+            ]);
+
+            Auth::login($user);
+        });
+
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Your account has been created successfully.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vendor Registration
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Show vendor registration page.
+     */
+    public function showVendorRegister(): View
+    {
+        return view('auth.vendor-register');
+    }
+
+    /**
+     * Register a new vendor/business.
+     */
+public function registerVendor(Request $request): RedirectResponse
+{
+    /*
+    |--------------------------------------------------------------------------
+    | Validate Vendor Registration
+    |--------------------------------------------------------------------------
+    */
+
+    $validated = $request->validate([
+        'first_name' => [
+            'required',
+            'string',
+            'max:100',
+        ],
+
+        'last_name' => [
+            'required',
+            'string',
+            'max:100',
+        ],
+
+        'business_name' => [
+            'required',
+            'string',
+            'max:255',
+        ],
+
+        'phone_number' => [
+            'required',
+            'string',
+            'max:30',
+            'unique:users,phone_number',
+        ],
+
+        'email' => [
+            'nullable',
+            'email',
+            'max:255',
+        ],
+
+        'password' => [
+            'required',
+            'string',
+            'min:8',
+            'confirmed',
+        ],
+    ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Create User + Vendor
+    |--------------------------------------------------------------------------
+    */
+
+    DB::transaction(function () use ($validated, &$user) {
 
         /*
         |--------------------------------------------------------------------------
-        | Create Customer
+        | Create Vendor Owner User
         |--------------------------------------------------------------------------
-        |
-        | Public registration creates customers only.
-        |
-        | Vendors are created/managed through the vendor workflow.
-        |
         */
 
         $user = User::create([
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
 
-            'first_name' =>
-                $validated['first_name'],
+            'phone_number' => $validated['phone_number'],
 
-            'last_name' =>
-                $validated['last_name'],
+            // Automatically set Pakistan country code
+            'country_code' => '+92',
 
-            'email' =>
-                $validated['email'],
+            'email' => $validated['email'] ?? null,
 
-            'phone_number' =>
-                $validated['phone_number'],
+            'password' => $validated['password'],
 
-            'country_code' =>
-                $validated['country_code'],
+            'role' => 'vendor',
 
-            'password' =>
-                $validated['password'],
+            'is_verified' => false,
 
-            'role' =>
-                'customer',
-
-            'is_verified' =>
-                false,
-
-            'status' =>
-                'active',
-
+            'status' => 'active',
         ]);
-
 
         /*
         |--------------------------------------------------------------------------
-        | Login Newly Registered User
+        | Generate Unique Vendor Slug
         |--------------------------------------------------------------------------
         */
 
-        Auth::guard('web')->login($user);
+        $slug = Str::slug($validated['business_name']);
 
-        $request->session()->regenerate();
+        $originalSlug = $slug;
+        $counter = 1;
 
+        while (Vendor::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
 
-        return redirect()
-            ->intended(route('dashboard'))
-            ->with(
-                'success',
-                'Your account has been created successfully.'
-            );
-    }
+        /*
+        |--------------------------------------------------------------------------
+        | Create Vendor Profile
+        |--------------------------------------------------------------------------
+        |
+        | IMPORTANT:
+        | Your vendors table requires user_id.
+        |
+        */
 
+        Vendor::create([
+            'user_id' => $user->id,
+
+            'business_name' => $validated['business_name'],
+
+            'slug' => $slug,
+
+            'phone_number' => $validated['phone_number'],
+
+            'status' => 'pending',
+
+            'is_featured' => false,
+
+            'is_premium' => false,
+
+            'avg_rating' => 0,
+
+            'review_count' => 0,
+
+            'view_count' => 0,
+        ]);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Login Vendor
+    |--------------------------------------------------------------------------
+    */
+
+   Auth::guard('web')->login($user);
+
+$request->session()->regenerate();
+
+return redirect()
+    ->route('home')
+    ->with(
+        'success',
+        'Your business has been registered successfully and is awaiting approval.'
+    );
+}
 
     /*
     |--------------------------------------------------------------------------
@@ -283,28 +349,21 @@ public function login(Request $request): RedirectResponse
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * Show authenticated user's profile.
+     */
     public function profile(): View
     {
-        $user = Auth::guard('web')->user();
+        /** @var User $user */
+        $user = Auth::user();
 
-        return view(
-            'auth.profile',
-            compact('user')
-        );
+        $user->load([
+            'vendor',
+            'customerProfile.city',
+        ]);
+
+        return view('auth.profile', compact('user'));
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Show Change Password
-    |--------------------------------------------------------------------------
-    */
-
-    public function showChangePassword(): View
-    {
-        return view('auth.change-password');
-    }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -312,13 +371,23 @@ public function login(Request $request): RedirectResponse
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * Show change password page.
+     */
+    public function showChangePassword(): View
+    {
+        return view('auth.change-password');
+    }
+
+    /**
+     * Change authenticated user's password.
+     */
     public function changePassword(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-
             'current_password' => [
                 'required',
-                'current_password:web',
+                'current_password',
             ],
 
             'password' => [
@@ -327,31 +396,16 @@ public function login(Request $request): RedirectResponse
                 'min:8',
                 'confirmed',
             ],
-
         ]);
 
-
-        $user = Auth::guard('web')->user();
+        /** @var User $user */
+        $user = Auth::user();
 
         $user->update([
             'password' => $validated['password'],
         ]);
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Logout Other Sessions / Re-authentication
-        |--------------------------------------------------------------------------
-        |
-        | We keep the current session active.
-        |
-        */
-
-        return redirect()
-            ->route('profile')
-            ->with(
-                'success',
-                'Your password has been changed successfully.'
-            );
+        return back()
+            ->with('success', 'Your password has been changed successfully.');
     }
 }

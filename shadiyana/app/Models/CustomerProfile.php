@@ -6,8 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
-class PackageService extends Model
+class CustomerProfile extends Model
 {
     use HasFactory;
 
@@ -17,20 +16,22 @@ class PackageService extends Model
     |--------------------------------------------------------------------------
     */
 
-    protected $table = 'package_services';
+    protected $table = 'customer_profiles';
 
 
     /*
     |--------------------------------------------------------------------------
-    | Mass Assignable Fields
+    | Mass Assignment
     |--------------------------------------------------------------------------
     */
 
     protected $fillable = [
-        'package_id',
-        'service_id',
-        'quantity',
-        'description',
+        'user_id',
+        'city_id',
+        'guest_count',
+        'budget',
+        'wedding_type',
+        'partner_name',
     ];
 
 
@@ -40,9 +41,13 @@ class PackageService extends Model
     |--------------------------------------------------------------------------
     */
 
-    protected $casts = [
-        'quantity' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'guest_count' => 'integer',
+            'budget' => 'decimal:2',
+        ];
+    }
 
 
     /*
@@ -52,19 +57,19 @@ class PackageService extends Model
     */
 
     /**
-     * Package service belongs to a package.
+     * Customer profile belongs to a User.
      */
-    public function package(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Package::class);
+        return $this->belongsTo(User::class);
     }
 
 
     /**
-     * Package service belongs to a service.
+     * Customer profile belongs to a City.
      */
-    public function service(): BelongsTo
+    public function city(): BelongsTo
     {
-        return $this->belongsTo(Service::class);
+        return $this->belongsTo(City::class);
     }
 }

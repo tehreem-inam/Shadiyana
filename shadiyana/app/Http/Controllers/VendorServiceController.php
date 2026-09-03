@@ -32,30 +32,91 @@ class VendorServiceController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function index(Vendor $vendor): View
-    {
-        $vendor->load([
-            'user',
+public function index(Request $request, Vendor $vendor): View
+{
+    $this->ensureVendorAccess($vendor);
+
+    $query = $vendor->services()
+        ->withPivot([
+            'custom_name',
+            'description',
+            'status',
         ]);
 
-        $vendorServices = VendorService::query()
-            ->with([
-                'service.taxonomy',
-            ])
-            ->where('vendor_id', $vendor->id)
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+    /*
+    |--------------------------------------------------------------------------
+    | Search
+    |--------------------------------------------------------------------------
+    */
 
-        return view(
-            'vendors.services.index',
-            compact(
-                'vendor',
-                'vendorServices'
-            )
+    if ($request->filled('search')) {
+
+        $search = trim($request->input('search'));
+
+        $query->where(function ($q) use ($search) {
+
+            $q->where('services.name', 'ilike', "%{$search}%")
+                ->orWhere(
+                    'vendor_services.custom_name',
+                    'ilike',
+                    "%{$search}%"
+                )
+                ->orWhere(
+                    'vendor_services.description',
+                    'ilike',
+                    "%{$search}%"
+                );
+
+        });
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Status Filter
+    |--------------------------------------------------------------------------
+    */
+
+    if ($request->filled('status')) {
+
+        $query->where(
+            'vendor_services.status',
+            $request->input('status')
         );
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ordering
+    |--------------------------------------------------------------------------
+    */
+
+    $query->orderByDesc('vendor_services.created_at');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pagination
+    |--------------------------------------------------------------------------
+    */
+
+    $services = $query
+        ->paginate(15)
+        ->withQueryString();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | View
+    |--------------------------------------------------------------------------
+    */
+
+    return view('vendors.services.index', [
+        'vendor' => $vendor,
+        'services' => $services,
+    ]);
+}
 
     /*
     |--------------------------------------------------------------------------
@@ -871,4 +932,52 @@ class VendorServiceController extends Controller
             404
         );
     }
+    /*
+|--------------------------------------------------------------------------
+| Verify Vendor Access
+|--------------------------------------------------------------------------
+|
+| Super admins can manage any vendor.
+| Vendors can only manage their own vendor profile/services.
+|
+*/
+
+private function ensureVendorAccess(Vendor $vendor): void
+{
+    $user = auth()->user();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Super Admin
+    |--------------------------------------------------------------------------
+    */
+
+    if ($user && $user->role === 'superadmin') {
+        return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vendor
+    |--------------------------------------------------------------------------
+    */
+
+    if ($user && $user->role === 'vendor') {
+
+        abort_unless(
+            (int) $vendor->user_id === (int) $user->id,
+            403
+        );
+
+        return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Everyone Else
+    |--------------------------------------------------------------------------
+    */
+
+    abort(403);
+}
 }

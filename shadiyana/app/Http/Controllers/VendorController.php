@@ -549,6 +549,33 @@ public function store(Request $request): RedirectResponse
 
     /*
     |--------------------------------------------------------------------------
+    | Resolve Coordinates
+    |--------------------------------------------------------------------------
+    |
+    | Prefer the latitude/longitude submitted from the map on the form
+    | (the user explicitly pinned/confirmed this location).
+    |
+    | Only fall back to server-side geocoding if the coordinates were
+    | not submitted for some reason.
+    |
+    */
+
+    $latitude  = $validated['latitude']  ?? null;
+    $longitude = $validated['longitude'] ?? null;
+
+    if (is_null($latitude) || is_null($longitude)) {
+
+        $coordinates = $this->geocodeLocation(
+            $validated['address'] ?? null,
+            $validated['city_id'] ?? null
+        );
+
+        $latitude  = $coordinates['latitude'];
+        $longitude = $coordinates['longitude'];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | Create User + Vendor
     |--------------------------------------------------------------------------
     |
@@ -562,7 +589,9 @@ public function store(Request $request): RedirectResponse
         $validated,
         $request,
         $slug,
-        $isVerified
+        $isVerified,
+        $latitude,
+        $longitude
     ) {
 
         /*
@@ -593,17 +622,6 @@ public function store(Request $request): RedirectResponse
 
             'last_login_at' => null,
         ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Geocode Vendor Location
-        |--------------------------------------------------------------------------
-        */
-
-        $coordinates = $this->geocodeLocation(
-            $validated['address'] ?? null,
-            $validated['city_id'] ?? null
-        );
 
         /*
         |--------------------------------------------------------------------------
@@ -664,10 +682,10 @@ public function store(Request $request): RedirectResponse
                 $validated['city_id'] ?? null,
 
             'latitude' =>
-                $coordinates['latitude'],
+                $latitude,
 
             'longitude' =>
-                $coordinates['longitude'],
+                $longitude,
 
             /*
             |--------------------------------------------------------------------------
@@ -945,14 +963,30 @@ public function update(
 
     /*
     |--------------------------------------------------------------------------
-    | Geocode Location
+    | Resolve Coordinates
     |--------------------------------------------------------------------------
+    |
+    | Prefer the latitude/longitude submitted from the map on the form
+    | (the user explicitly pinned/confirmed this location).
+    |
+    | Only fall back to server-side geocoding if the coordinates were
+    | not submitted for some reason.
+    |
     */
 
-    $coordinates = $this->geocodeLocation(
-        $validated['address'] ?? null,
-        $validated['city_id'] ?? null
-    );
+    $latitude  = $validated['latitude']  ?? null;
+    $longitude = $validated['longitude'] ?? null;
+
+    if (is_null($latitude) || is_null($longitude)) {
+
+        $coordinates = $this->geocodeLocation(
+            $validated['address'] ?? null,
+            $validated['city_id'] ?? null
+        );
+
+        $latitude  = $coordinates['latitude'];
+        $longitude = $coordinates['longitude'];
+    }
 
 
     /*
@@ -994,7 +1028,8 @@ public function update(
         $vendor,
         $user,
         $validated,
-        $coordinates,
+        $latitude,
+        $longitude,
         $slug,
         $isVerified,
         $verifiedAt
@@ -1102,10 +1137,10 @@ public function update(
                 $validated['city_id'] ?? null,
 
             'latitude' =>
-                $coordinates['latitude'],
+                $latitude,
 
             'longitude' =>
-                $coordinates['longitude'],
+                $longitude,
 
 
             /*
@@ -1615,6 +1650,29 @@ private function validateVendor(
 
         /*
         |--------------------------------------------------------------------------
+        | Coordinates
+        |--------------------------------------------------------------------------
+        |
+        | Submitted from the Leaflet map on the create/edit form. These are
+        | the user-confirmed coordinates and take priority over server-side
+        | geocoding.
+        |
+        */
+
+        'latitude' => [
+            'nullable',
+            'numeric',
+            'between:-90,90',
+        ],
+
+        'longitude' => [
+            'nullable',
+            'numeric',
+            'between:-180,180',
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
         | Vendor Status
         |--------------------------------------------------------------------------
         */
@@ -1721,8 +1779,9 @@ private function generateUniqueSlug(
 | Uses OpenStreetMap Nominatim to convert the vendor address/city
 | into latitude and longitude.
 |
-| Geocoding is non-critical:
-| if the external service fails, vendor update continues normally.
+| This is now only used as a FALLBACK when latitude/longitude were not
+| submitted from the form's map. Geocoding is non-critical: if the
+| external service fails, vendor create/update continues normally.
 |
 */
 

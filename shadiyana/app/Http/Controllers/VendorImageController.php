@@ -6,593 +6,142 @@ use App\Models\Vendor;
 use App\Models\VendorImage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use Throwable;
 
 class VendorImageController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | Image Statuses
+    | Gallery Index
     |--------------------------------------------------------------------------
     */
 
-    private const STATUSES = [
-        'active',
-        'inactive',
-    ];
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Display Vendor Images
-    |--------------------------------------------------------------------------
-    |
-    | Display all gallery images belonging to a specific vendor.
-    |
-    */
-
-    public function index(Vendor $vendor): View
+    public function index(Request $request): View
     {
+        $isAdmin = $this->isSuperAdmin();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Super Admin
+        |--------------------------------------------------------------------------
+        |
+        | Super admin can select and manage any vendor's gallery.
+        |
+        */
+
+        if ($isAdmin) {
+
+            $vendors = Vendor::query()
+                ->with('city')
+                ->orderBy('business_name')
+                ->get();
+
+            $vendor = null;
+            $images = null;
+
+            if ($request->filled('vendor')) {
+
+                $vendor = $this->getVendor($request);
+
+                $images = $vendor->images()
+                    ->orderBy('sort_order')
+                    ->paginate(24)
+                    ->withQueryString();
+            }
+
+            return view('vendors.images.index', [
+                'vendor' => $vendor,
+                'vendors' => $vendors,
+                'images' => $images,
+                'isAdmin' => true,
+            ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Vendor
+        |--------------------------------------------------------------------------
+        */
+
+        $vendor = $this->getVendor($request);
+
         $images = $vendor->images()
-            ->latest('sort_order')
-            ->latest('id')
-            ->paginate(15)
+            ->orderBy('sort_order')
+            ->paginate(24)
             ->withQueryString();
 
-        return view(
-            'vendor-images.index',
-            compact(
-                'vendor',
-                'images'
-            )
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Show Create Image Form
-    |--------------------------------------------------------------------------
-    */
-
-    public function create(Vendor $vendor): View
-    {
-        return view(
-            'vendor-images.create',
-            compact('vendor')
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Store Vendor Image
-    |--------------------------------------------------------------------------
-    |
-    | Upload a new gallery image for the selected vendor.
-    |
-    */
-
-    public function store(
-        Request $request,
-        Vendor $vendor
-    ): RedirectResponse {
-
-        $validated = $this->validateImage($request);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Determine Sort Order
-        |--------------------------------------------------------------------------
-        |
-        | If the administrator does not provide a sort order,
-        | automatically place the image at the end of the gallery.
-        |
-        */
-
-        $sortOrder = $validated['sort_order']
-            ?? $this->getNextSortOrder($vendor);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Store Image
-        |--------------------------------------------------------------------------
-        */
-
-        $imagePath = null;
-
-        try {
-
-            $imagePath = $request
-                ->file('image')
-                ->store(
-                    'vendors/gallery',
-                    'public'
-                );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Create Database Record
-            |--------------------------------------------------------------------------
-            */
-
-            VendorImage::create([
-
-                'vendor_id' =>
-                    $vendor->id,
-
-                'image_url' =>
-                    $imagePath,
-
-                'title' =>
-                    $validated['title'] ?? null,
-
-                'description' =>
-                    $validated['description'] ?? null,
-
-                'sort_order' =>
-                    $sortOrder,
-
-                'status' =>
-                    $validated['status'],
-            ]);
-
-
-        } catch (Throwable $exception) {
-
-            /*
-            |--------------------------------------------------------------------------
-            | Cleanup Uploaded File
-            |--------------------------------------------------------------------------
-            |
-            | If database insertion fails after the file has been uploaded,
-            | remove the orphaned file.
-            |
-            */
-
-            if (
-                $imagePath &&
-                Storage::disk('public')->exists($imagePath)
-            ) {
-
-                Storage::disk('public')->delete(
-                    $imagePath
-                );
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Report Error
-            |--------------------------------------------------------------------------
-            */
-
-            report($exception);
-
-            return redirect()
-                ->back()
-                ->withInput()
-                ->withErrors([
-                    'image' =>
-                        'The image could not be uploaded. Please try again.',
-                ]);
-        }
-
-
-        return redirect()
-            ->route(
-                'vendors.show',
-                $vendor
-            )
-            ->with(
-                'success',
-                'Vendor gallery image added successfully.'
-            );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Show Edit Image Form
-    |--------------------------------------------------------------------------
-    */
-
-    public function edit(
-        Vendor $vendor,
-        VendorImage $image
-    ): View {
-
-        $this->ensureImageBelongsToVendor(
-            $vendor,
-            $image
-        );
-
-        return view(
-            'vendor-images.edit',
-            compact(
-                'vendor',
-                'image'
-            )
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Update Vendor Image
-    |--------------------------------------------------------------------------
-    |
-    | Update image information and optionally replace the image file.
-    |
-    */
-
-    public function update(
-        Request $request,
-        Vendor $vendor,
-        VendorImage $image
-    ): RedirectResponse {
-
-        $this->ensureImageBelongsToVendor(
-            $vendor,
-            $image
-        );
-
-
-        $validated = $this->validateImage(
-            $request,
-            false
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Existing Image Path
-        |--------------------------------------------------------------------------
-        */
-
-        $oldImagePath = $image->image_url;
-
-        $newImagePath = null;
-
-
-        try {
-
-            /*
-            |--------------------------------------------------------------------------
-            | Replace Physical Image
-            |--------------------------------------------------------------------------
-            |
-            | Upload the new image first.
-            |
-            */
-
-            if ($request->hasFile('image')) {
-
-                $newImagePath = $request
-                    ->file('image')
-                    ->store(
-                        'vendors/gallery',
-                        'public'
-                    );
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Update Database
-            |--------------------------------------------------------------------------
-            */
-
-            DB::transaction(function () use (
-                $image,
-                $validated,
-                $newImagePath
-            ) {
-
-                $image->update([
-
-                    'image_url' =>
-                        $newImagePath
-                            ?? $image->image_url,
-
-                    'title' =>
-                        $validated['title'] ?? null,
-
-                    'description' =>
-                        $validated['description'] ?? null,
-
-                    'sort_order' =>
-                        $validated['sort_order'],
-
-                    'status' =>
-                        $validated['status'],
-                ]);
-            });
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Delete Old Physical Image
-            |--------------------------------------------------------------------------
-            |
-            | Only delete the old image after the database update succeeds.
-            |
-            */
-
-            if (
-                $newImagePath &&
-                $oldImagePath &&
-                Storage::disk('public')
-                    ->exists($oldImagePath)
-            ) {
-
-                Storage::disk('public')
-                    ->delete($oldImagePath);
-            }
-
-
-        } catch (Throwable $exception) {
-
-            /*
-            |--------------------------------------------------------------------------
-            | Cleanup New Image If Update Failed
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                $newImagePath &&
-                Storage::disk('public')
-                    ->exists($newImagePath)
-            ) {
-
-                Storage::disk('public')
-                    ->delete($newImagePath);
-            }
-
-
-            report($exception);
-
-            return redirect()
-                ->back()
-                ->withInput()
-                ->withErrors([
-                    'image' =>
-                        'The gallery image could not be updated. Please try again.',
-                ]);
-        }
-
-
-        return redirect()
-            ->route(
-                'vendors.show',
-                $vendor
-            )
-            ->with(
-                'success',
-                'Vendor gallery image updated successfully.'
-            );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Delete Vendor Image
-    |--------------------------------------------------------------------------
-    |
-    | Delete both the database record and the physical image.
-    |
-    */
-
-    public function destroy(
-        Vendor $vendor,
-        VendorImage $image
-    ): RedirectResponse {
-
-        $this->ensureImageBelongsToVendor(
-            $vendor,
-            $image
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Store Image Path Before Deletion
-        |--------------------------------------------------------------------------
-        */
-
-        $imagePath = $image->image_url;
-
-
-        try {
-
-            /*
-            |--------------------------------------------------------------------------
-            | Delete Database Record
-            |--------------------------------------------------------------------------
-            */
-
-            DB::transaction(function () use ($image) {
-
-                $image->delete();
-            });
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Delete Physical Image
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                $imagePath &&
-                Storage::disk('public')
-                    ->exists($imagePath)
-            ) {
-
-                Storage::disk('public')
-                    ->delete($imagePath);
-            }
-
-
-        } catch (Throwable $exception) {
-
-            report($exception);
-
-            return redirect()
-                ->back()
-                ->withErrors([
-                    'image' =>
-                        'The gallery image could not be deleted. Please try again.',
-                ]);
-        }
-
-
-        return redirect()
-            ->route(
-                'vendors.show',
-                $vendor
-            )
-            ->with(
-                'success',
-                'Vendor gallery image deleted successfully.'
-            );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Toggle Image Status
-    |--------------------------------------------------------------------------
-    |
-    | Switch between:
-    |
-    | active
-    | inactive
-    |
-    */
-
-    public function toggleStatus(
-        Vendor $vendor,
-        VendorImage $image
-    ): RedirectResponse {
-
-        $this->ensureImageBelongsToVendor(
-            $vendor,
-            $image
-        );
-
-
-        $newStatus = $image->status === 'active'
-            ? 'inactive'
-            : 'active';
-
-
-        $image->update([
-            'status' => $newStatus,
+        return view('vendors.images.index', [
+            'vendor' => $vendor,
+            'vendors' => collect(),
+            'images' => $images,
+            'isAdmin' => false,
         ]);
-
-
-        return redirect()
-            ->back()
-            ->with(
-                'success',
-                'Gallery image status updated successfully.'
-            );
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Update Sort Order
+    | Create
     |--------------------------------------------------------------------------
-    |
-    | Allows administrators to manually control gallery ordering.
-    |
     */
 
-    public function updateSortOrder(
-        Request $request,
-        Vendor $vendor,
-        VendorImage $image
-    ): RedirectResponse {
+    public function create(Request $request): View
+    {
+        $isAdmin = $this->isSuperAdmin();
 
-        $this->ensureImageBelongsToVendor(
-            $vendor,
-            $image
-        );
+        $vendor = $this->getVendor($request);
 
+        $vendors = collect();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Super Admin Gets Vendor List
+        |--------------------------------------------------------------------------
+        */
+
+        if ($isAdmin) {
+
+            $vendors = Vendor::query()
+                ->with('city')
+                ->orderBy('business_name')
+                ->get();
+        }
+
+        return view('vendors.images.create', [
+            'vendor' => $vendor,
+            'vendors' => $vendors,
+            'isAdmin' => $isAdmin,
+        ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Store / Bulk Upload
+    |--------------------------------------------------------------------------
+    */
+
+    public function store(Request $request): RedirectResponse
+    {
+        $vendor = $this->getVendor($request);
 
         $validated = $request->validate([
-
-            'sort_order' => [
+            'images' => [
                 'required',
-                'integer',
-                'min:0',
-                'max:2147483647',
+                'array',
+                'min:1',
+                'max:30',
             ],
 
-        ]);
-
-
-        $image->update([
-            'sort_order' =>
-                $validated['sort_order'],
-        ]);
-
-
-        return redirect()
-            ->back()
-            ->with(
-                'success',
-                'Gallery image order updated successfully.'
-            );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validation
-    |--------------------------------------------------------------------------
-    */
-
-    private function validateImage(
-        Request $request,
-        bool $imageRequired = true
-    ): array {
-
-        return $request->validate([
-
-            /*
-            |--------------------------------------------------------------------------
-            | Image
-            |--------------------------------------------------------------------------
-            */
-
-            'image' => [
-                $imageRequired
-                    ? 'required'
-                    : 'nullable',
-
+            'images.*' => [
+                'required',
                 'image',
-
                 'mimes:jpg,jpeg,png,webp',
-
-                'max:4096',
+                'max:5120',
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Title
-            |--------------------------------------------------------------------------
-            */
 
             'title' => [
                 'nullable',
@@ -600,106 +149,448 @@ class VendorImageController extends Controller
                 'max:255',
             ],
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Description
-            |--------------------------------------------------------------------------
-            */
-
             'description' => [
                 'nullable',
                 'string',
-                'max:5000',
+                'max:2000',
             ],
+        ]);
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | Sort Order
-            |--------------------------------------------------------------------------
-            */
+        /*
+        |--------------------------------------------------------------------------
+        | Determine Next Sort Order
+        |--------------------------------------------------------------------------
+        */
 
-            'sort_order' => [
-                $imageRequired
-                    ? 'nullable'
-                    : 'required',
-
-                'integer',
-                'min:0',
-                'max:2147483647',
-            ],
+        $nextSortOrder =
+            ((int) $vendor->images()->max('sort_order')) + 1;
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | Status
-            |--------------------------------------------------------------------------
-            */
+        /*
+        |--------------------------------------------------------------------------
+        | Store Images
+        |--------------------------------------------------------------------------
+        */
 
-            'status' => [
-                'required',
-                Rule::in(
-                    self::STATUSES
-                ),
-            ],
+        foreach ($validated['images'] as $uploadedImage) {
+
+            $path = $uploadedImage->store(
+                "vendor-images/{$vendor->id}",
+                'public'
+            );
+
+            VendorImage::create([
+                'vendor_id' => $vendor->id,
+                'image_url' => $path,
+                'title' => $validated['title'] ?? null,
+                'description' => $validated['description'] ?? null,
+                'sort_order' => $nextSortOrder++,
+                'status' => 'active',
+            ]);
+        }
+
+
+        return redirect()
+            ->route('vendors.images.index', [
+                'vendor' => $vendor->id,
+            ])
+            ->with(
+                'success',
+                'Gallery images uploaded successfully.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Show
+    |--------------------------------------------------------------------------
+    |
+    | There is intentionally NO vendors.images.show Blade view.
+    |
+    | Images are previewed directly on the gallery page using the
+    | same-page modal. If the show URL is accessed directly, redirect
+    | back to the vendor gallery.
+    |
+    */
+
+    public function show(
+        Request $request,
+        VendorImage $image
+    ): RedirectResponse {
+
+        $vendor = $this->getVendor($request);
+
+        $this->ensureImageBelongsToVendor($image, $vendor);
+
+        return redirect()
+            ->route('vendors.images.index', [
+                'vendor' => $vendor->id,
+            ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Edit
+    |--------------------------------------------------------------------------
+    */
+
+    public function edit(
+        Request $request,
+        VendorImage $image
+    ): View {
+
+        $vendor = $this->getVendor($request);
+
+        $this->ensureImageBelongsToVendor($image, $vendor);
+
+        $vendors = collect();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Super Admin Gets Vendor List
+        |--------------------------------------------------------------------------
+        */
+
+        if ($this->isSuperAdmin()) {
+
+            $vendors = Vendor::query()
+                ->with('city')
+                ->orderBy('business_name')
+                ->get();
+        }
+
+        return view('vendors.images.edit', [
+            'vendor' => $vendor,
+            'image' => $image,
+            'vendors' => $vendors,
+            'isAdmin' => $this->isSuperAdmin(),
         ]);
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Get Next Sort Order
+    | Update
     |--------------------------------------------------------------------------
-    |
-    | Example:
-    |
-    | Existing:
-    | 0
-    | 1
-    | 2
-    |
-    | New image:
-    | 3
-    |
     */
 
-    private function getNextSortOrder(
-        Vendor $vendor
-    ): int {
+    public function update(
+        Request $request,
+        VendorImage $image
+    ): RedirectResponse {
 
-        $maxSortOrder = VendorImage::query()
-            ->where(
-                'vendor_id',
-                $vendor->id
-            )
-            ->max('sort_order');
+        $vendor = $this->getVendor($request);
+
+        $this->ensureImageBelongsToVendor($image, $vendor);
+
+        $validated = $request->validate([
+            'image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+            ],
+
+            'title' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'description' => [
+                'nullable',
+                'string',
+                'max:2000',
+            ],
+
+            'sort_order' => [
+                'required',
+                'integer',
+                'min:0',
+            ],
+
+            'status' => [
+                'required',
+                'in:active,inactive',
+            ],
+        ]);
 
 
-        return $maxSortOrder === null
-            ? 0
-            : ((int) $maxSortOrder + 1);
+        /*
+        |--------------------------------------------------------------------------
+        | Replace Image
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->hasFile('image')) {
+
+            if (
+                $image->image_url &&
+                Storage::disk('public')->exists(
+                    $image->image_url
+                )
+            ) {
+                Storage::disk('public')->delete(
+                    $image->image_url
+                );
+            }
+
+            $image->image_url = $request
+                ->file('image')
+                ->store(
+                    "vendor-images/{$vendor->id}",
+                    'public'
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Metadata
+        |--------------------------------------------------------------------------
+        */
+
+        $image->title =
+            $validated['title'] ?? null;
+
+        $image->description =
+            $validated['description'] ?? null;
+
+        $image->sort_order =
+            $validated['sort_order'];
+
+        $image->status =
+            $validated['status'];
+
+        $image->save();
+
+
+        return redirect()
+            ->route('vendors.images.index', [
+                'vendor' => $vendor->id,
+            ])
+            ->with(
+                'success',
+                'Gallery image updated successfully.'
+            );
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Verify Image Belongs To Vendor
+    | Delete
+    |--------------------------------------------------------------------------
+    */
+
+    public function destroy(
+        Request $request,
+        VendorImage $image
+    ): RedirectResponse {
+
+        $vendor = $this->getVendor($request);
+
+        $this->ensureImageBelongsToVendor($image, $vendor);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Delete Physical File
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $image->image_url &&
+            Storage::disk('public')->exists(
+                $image->image_url
+            )
+        ) {
+            Storage::disk('public')->delete(
+                $image->image_url
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Delete Database Record
+        |--------------------------------------------------------------------------
+        */
+
+        $image->delete();
+
+
+        return redirect()
+            ->route('vendors.images.index', [
+                'vendor' => $vendor->id,
+            ])
+            ->with(
+                'success',
+                'Gallery image deleted successfully.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reorder
+    |--------------------------------------------------------------------------
+    */
+
+    public function reorder(Request $request): RedirectResponse
+    {
+        $vendor = $this->getVendor($request);
+
+        $validated = $request->validate([
+            'images' => [
+                'required',
+                'array',
+            ],
+
+            'images.*.id' => [
+                'required',
+                'integer',
+            ],
+
+            'images.*.sort_order' => [
+                'required',
+                'integer',
+                'min:0',
+            ],
+        ]);
+
+
+        foreach ($validated['images'] as $item) {
+
+            VendorImage::query()
+                ->where('id', $item['id'])
+                ->where('vendor_id', $vendor->id)
+                ->update([
+                    'sort_order' => $item['sort_order'],
+                ]);
+        }
+
+
+        return redirect()
+            ->route('vendors.images.index', [
+                'vendor' => $vendor->id,
+            ])
+            ->with(
+                'success',
+                'Gallery order updated successfully.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Get Vendor
     |--------------------------------------------------------------------------
     |
-    | Prevent an administrator from accidentally or maliciously operating
-    | on an image belonging to another vendor.
+    | Super Admin:
+    |     Can access any vendor.
+    |
+    | Vendor:
+    |     Can access only vendors where user_id = Auth::id().
     |
     */
 
+    private function getVendor(Request $request): Vendor
+    {
+        $vendorId = $request->query('vendor');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Vendor ID Required
+        |--------------------------------------------------------------------------
+        */
+
+        abort_unless(
+            $vendorId &&
+            is_numeric($vendorId),
+            404
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Super Admin
+        |--------------------------------------------------------------------------
+        */
+
+        if ($this->isSuperAdmin()) {
+
+            $vendor = Vendor::query()
+                ->where('id', (int) $vendorId)
+                ->first();
+
+            abort_unless($vendor, 404);
+
+            return $vendor;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Normal Vendor
+        |--------------------------------------------------------------------------
+        */
+
+        $vendor = Vendor::query()
+            ->where('id', (int) $vendorId)
+            ->where('user_id', Auth::id())
+            ->first();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Prevent Access To Another Vendor
+        |--------------------------------------------------------------------------
+        */
+
+        abort_unless($vendor, 403);
+
+        return $vendor;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ensure Image Belongs To Vendor
+    |--------------------------------------------------------------------------
+    */
+
     private function ensureImageBelongsToVendor(
-        Vendor $vendor,
-        VendorImage $image
+        VendorImage $image,
+        Vendor $vendor
     ): void {
 
         abort_unless(
             (int) $image->vendor_id === (int) $vendor->id,
-            404
+            403
         );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Super Admin Check
+    |--------------------------------------------------------------------------
+    */
+
+    private function isSuperAdmin(): bool
+    {
+        return Auth::check()
+            && in_array(
+                Auth::user()->role,
+                [
+                    'superadmin',
+                    'super_admin',
+                ],
+                true
+            );
     }
 }

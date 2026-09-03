@@ -11,58 +11,107 @@ use Illuminate\Http\Request;
 
 class ListingController extends Controller
 {
-    /**
-     * Display public vendor listings.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Public Vendor Listings
+    |--------------------------------------------------------------------------
+    */
+
     public function index(Request $request)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Query Parameters
-        |--------------------------------------------------------------------------
-        */
+$categorySlug = $request->query('category');
+$taxonomySlug = $request->query('slug');
+$cityFilter = $request->query('city');
+$sort = $request->query('sort', 'relevance');
 
-        $categorySlug = $request->query('category');
-        $taxonomySlug = $request->query('slug');
-        $cityId = $request->query('city');
-        $sort = $request->query('sort', 'relevance');
+$cityId = null;
 
+/*
+|--------------------------------------------------------------------------
+| Resolve City Filter
+|--------------------------------------------------------------------------
+|
+| The public URL can provide either:
+|
+| /listings?city=4
+| /listings?city=Islamabad
+|
+| Internally vendors are filtered using vendors.city_id.
+|
+*/
 
-        /*
-        |--------------------------------------------------------------------------
-        | Parent Taxonomy / Category
-        |--------------------------------------------------------------------------
-        */
+if ($cityFilter !== null && $cityFilter !== '') {
 
+    if (is_numeric($cityFilter)) {
+
+        $cityId = (int) $cityFilter;
+
+    } else {
+
+        $cityId = City::query()
+            ->whereRaw(
+                'LOWER(name) = ?',
+                [strtolower(trim($cityFilter))]
+            )
+            ->value('id');
+    }
+}
         $category = null;
+        $taxonomy = null;
+        $service = null;
 
-        if ($categorySlug) {
+        /*
+        |--------------------------------------------------------------------------
+        | Service Listing
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $categorySlug === 'services' &&
+            $taxonomySlug
+        ) {
+
+            $service = Service::query()
+                ->where('slug', $taxonomySlug)
+                ->where('status', 'active')
+                ->first();
+
+            abort_unless($service, 404);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Taxonomy Listing
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $categorySlug &&
+            $categorySlug !== 'services'
+        ) {
+
             $category = Taxonomy::query()
                 ->where('slug', $categorySlug)
                 ->whereNull('parent_id')
+                ->where('status', 'active')
                 ->first();
         }
 
+        if (
+            $taxonomySlug &&
+            $categorySlug !== 'services'
+        ) {
 
-        /*
-        |--------------------------------------------------------------------------
-        | Child Taxonomy
-        |--------------------------------------------------------------------------
-        */
-
-        $taxonomy = null;
-
-        if ($taxonomySlug) {
             $taxonomy = Taxonomy::query()
                 ->with('parent')
                 ->where('slug', $taxonomySlug)
+                ->where('status', 'active')
                 ->first();
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | Validate Parent → Child Relationship
+        | Validate Child Taxonomy
         |--------------------------------------------------------------------------
         */
 
@@ -71,36 +120,18 @@ class ListingController extends Controller
             $taxonomy &&
             (int) $taxonomy->parent_id !== (int) $category->id
         ) {
+
             $taxonomy = null;
         }
-
 
         /*
         |--------------------------------------------------------------------------
         | Vendors Query
         |--------------------------------------------------------------------------
-        |
-        | IMPORTANT:
-        | Only vendors with status = active are displayed.
-        |
         */
 
         $vendors = Vendor::query()
-
-            /*
-            |--------------------------------------------------------------------------
-            | ACTIVE VENDORS ONLY
-            |--------------------------------------------------------------------------
-            */
-
             ->where('status', 'active')
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Relationships
-            |--------------------------------------------------------------------------
-            */
 
             ->with([
                 'city',
@@ -108,10 +139,9 @@ class ListingController extends Controller
                 'packages',
             ])
 
-
             /*
             |--------------------------------------------------------------------------
-            | Filter By Child Taxonomy
+            | Taxonomy Filter
             |--------------------------------------------------------------------------
             */
 
@@ -127,17 +157,42 @@ class ListingController extends Controller
                                 'taxonomies.id',
                                 $taxonomy->id
                             );
-
                         }
                     );
-
                 }
             )
 
+            /*
+            |--------------------------------------------------------------------------
+            | Service Filter
+            |--------------------------------------------------------------------------
+            */
+
+            ->when(
+                $service,
+                function ($query) use ($service) {
+
+                    $query->whereHas(
+                        'services',
+                        function ($serviceQuery) use ($service) {
+
+                            $serviceQuery
+                                ->where(
+                                    'services.id',
+                                    $service->id
+                                )
+                                ->where(
+                                    'vendor_services.status',
+                                    'active'
+                                );
+                        }
+                    );
+                }
+            )
 
             /*
             |--------------------------------------------------------------------------
-            | Filter By City
+            | City Filter
             |--------------------------------------------------------------------------
             */
 
@@ -145,11 +200,12 @@ class ListingController extends Controller
                 $cityId,
                 function ($query) use ($cityId) {
 
-                    $query->where('city_id', $cityId);
-
+                    $query->where(
+                        'city_id',
+                        $cityId
+                    );
                 }
             );
-
 
         /*
         |--------------------------------------------------------------------------
@@ -160,31 +216,39 @@ class ListingController extends Controller
         switch ($sort) {
 
             case 'rating':
+
                 $vendors
                     ->orderByDesc('avg_rating')
                     ->orderByDesc('review_count');
+
                 break;
 
             case 'reviews':
+
                 $vendors
                     ->orderByDesc('review_count')
                     ->orderByDesc('avg_rating');
+
                 break;
 
             case 'newest':
+
                 $vendors->latest();
+
                 break;
 
             case 'relevance':
+
             default:
+
                 $vendors
                     ->orderByDesc('is_featured')
                     ->orderByDesc('is_premium')
                     ->orderByDesc('avg_rating')
                     ->orderByDesc('review_count');
+
                 break;
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -196,10 +260,9 @@ class ListingController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-
         /*
         |--------------------------------------------------------------------------
-        | Navbar Data
+        | Public Navigation Data
         |--------------------------------------------------------------------------
         */
 
@@ -210,27 +273,23 @@ class ListingController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-
         $services = Service::query()
             ->where('status', 'active')
             ->orderBy('name')
             ->get();
-
 
         $eventTypes = EventType::query()
             ->where('status', 'active')
             ->orderBy('name')
             ->get();
 
-
         $cities = City::query()
             ->orderBy('name')
             ->get();
 
-
         /*
         |--------------------------------------------------------------------------
-        | Return View
+        | Listings View
         |--------------------------------------------------------------------------
         */
 
@@ -238,19 +297,263 @@ class ListingController extends Controller
 
             'vendors' => $vendors,
 
-            // Parent taxonomy
             'category' => $category,
-
-            // Child taxonomy
             'taxonomy' => $taxonomy,
+            'service' => $service,
 
-            // Query parameters
             'categorySlug' => $categorySlug,
             'taxonomySlug' => $taxonomySlug,
             'cityId' => $cityId,
             'sort' => $sort,
 
-            // Navbar data
+            'venueTaxonomies' => $venueTaxonomies,
+            'services' => $services,
+            'eventTypes' => $eventTypes,
+            'cities' => $cities,
+        ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Public Vendor Profile
+    |--------------------------------------------------------------------------
+    */
+
+    public function show(string $slug)
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | Find Active Vendor By Slug
+        |--------------------------------------------------------------------------
+        */
+
+        $vendor = Vendor::query()
+            ->where('slug', $slug)
+            ->where('status', 'active')
+            ->first();
+
+        abort_unless($vendor, 404);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Load Vendor Data
+        |--------------------------------------------------------------------------
+        */
+
+        $vendor->load([
+
+            /*
+            |--------------------------------------------------------------------------
+            | Location
+            |--------------------------------------------------------------------------
+            */
+
+            'city',
+
+            /*
+            |--------------------------------------------------------------------------
+            | Categories / Taxonomies
+            |--------------------------------------------------------------------------
+            */
+
+            'taxonomies.parent',
+
+            /*
+            |--------------------------------------------------------------------------
+            | Services
+            |--------------------------------------------------------------------------
+            */
+
+            'services' => function ($query) {
+
+                $query
+                    ->where(
+                        'services.status',
+                        'active'
+                    )
+                    ->where(
+                        'vendor_services.status',
+                        'active'
+                    )
+                    ->orderBy(
+                        'services.name'
+                    );
+            },
+
+            /*
+            |--------------------------------------------------------------------------
+            | Event Types
+            |--------------------------------------------------------------------------
+            |
+            | IMPORTANT:
+            | vendor_event_types does NOT have a status column.
+            | Therefore only event_types.status is checked.
+            |
+            */
+
+            'eventTypes' => function ($query) {
+
+                $query
+                    ->where(
+                        'event_types.status',
+                        'active'
+                    )
+                    ->orderBy(
+                        'event_types.name'
+                    );
+            },
+
+            /*
+            |--------------------------------------------------------------------------
+            | Gallery Images
+            |--------------------------------------------------------------------------
+            */
+
+            'images' => function ($query) {
+
+                $query
+                    ->where(
+                        'status',
+                        'active'
+                    )
+                    ->orderBy(
+                        'sort_order'
+                    );
+            },
+
+            /*
+            |--------------------------------------------------------------------------
+            | Packages
+            |--------------------------------------------------------------------------
+            */
+
+            'packages' => function ($query) {
+
+                $query
+                    ->where(
+                        'status',
+                        'active'
+                    )
+                    ->with([
+                        'services' => function ($serviceQuery) {
+
+                            $serviceQuery
+                                ->where(
+                                    'services.status',
+                                    'active'
+                                );
+                        },
+                    ])
+                    ->orderBy('name');
+            },
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Related Vendors
+        |--------------------------------------------------------------------------
+        */
+
+        $taxonomyIds = $vendor
+            ->taxonomies
+            ->pluck('id');
+
+        $relatedVendors = Vendor::query()
+
+            ->where(
+                'status',
+                'active'
+            )
+
+            ->where(
+                'id',
+                '!=',
+                $vendor->id
+            )
+
+            ->when(
+                $taxonomyIds->isNotEmpty(),
+                function ($query) use ($taxonomyIds) {
+
+                    $query->whereHas(
+                        'taxonomies',
+                        function ($taxonomyQuery) use ($taxonomyIds) {
+
+                            $taxonomyQuery->whereIn(
+                                'taxonomies.id',
+                                $taxonomyIds
+                            );
+                        }
+                    );
+                }
+            )
+
+            ->with([
+                'city',
+                'taxonomies',
+
+                'images' => function ($query) {
+
+                    $query
+                        ->where(
+                            'status',
+                            'active'
+                        )
+                        ->orderBy(
+                            'sort_order'
+                        );
+                },
+            ])
+
+            ->orderByDesc('is_featured')
+            ->orderByDesc('is_premium')
+            ->orderByDesc('avg_rating')
+            ->orderByDesc('review_count')
+
+            ->limit(4)
+
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Public Navigation Data
+        |--------------------------------------------------------------------------
+        */
+
+        $venueTaxonomies = Taxonomy::query()
+            ->with('children')
+            ->whereNull('parent_id')
+            ->where('status', 'active')
+            ->orderBy('sort_order')
+            ->get();
+
+        $services = Service::query()
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get();
+
+        $eventTypes = EventType::query()
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get();
+
+        $cities = City::query()
+            ->orderBy('name')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Vendor Profile View
+        |--------------------------------------------------------------------------
+        */
+
+        return view('public.vendors.show', [
+
+            'vendor' => $vendor,
+
+            'relatedVendors' => $relatedVendors,
+
             'venueTaxonomies' => $venueTaxonomies,
             'services' => $services,
             'eventTypes' => $eventTypes,

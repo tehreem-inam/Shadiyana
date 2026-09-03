@@ -297,12 +297,9 @@
                     <p class="text-sm text-gray-500">
                         Don't have an account?
 
-                        <a
-                            href="{{ route('register') }}"
-                            class="font-bold text-[#D7385E] hover:underline"
-                        >
-                            Create an account
-                        </a>
+                        <a href="{{ route('vendor.register') }}">
+    Register as a Business
+</a>
                     </p>
 
                 </div>

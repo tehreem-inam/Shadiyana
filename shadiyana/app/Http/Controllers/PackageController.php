@@ -3,26 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Models\Package;
+use App\Models\Service;
 use App\Models\Vendor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PackageController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | Display a listing of packages
+    | INDEX
     |--------------------------------------------------------------------------
     */
 
-    public function index(Request $request): View
+    public function index(Request $request, Vendor $vendor): View
     {
+        $this->ensureVendorAccess($vendor);
+
         $query = Package::query()
+            ->where('vendor_id', $vendor->id)
             ->with('vendor')
             ->withCount('packageServices');
-
 
         /*
         |--------------------------------------------------------------------------
@@ -31,39 +36,13 @@ class PackageController extends Controller
         */
 
         if ($request->filled('search')) {
-
             $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
-
                 $q->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('description', 'ilike', "%{$search}%")
-                    ->orWhereHas('vendor', function ($vendorQuery) use ($search) {
-                        $vendorQuery->where(
-                            'business_name',
-                            'ilike',
-                            "%{$search}%"
-                        );
-                    });
-
+                    ->orWhere('description', 'ilike', "%{$search}%");
             });
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Vendor Filter
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->filled('vendor_id')) {
-
-            $query->where(
-                'vendor_id',
-                $request->vendor_id
-            );
-        }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -72,13 +51,11 @@ class PackageController extends Controller
         */
 
         if ($request->filled('pricing_type')) {
-
             $query->where(
                 'pricing_type',
                 $request->pricing_type
             );
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -87,13 +64,11 @@ class PackageController extends Controller
         */
 
         if ($request->filled('status')) {
-
             $query->where(
                 'status',
                 $request->status
             );
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -104,12 +79,17 @@ class PackageController extends Controller
         $sort = $request->get('sort', 'latest');
 
         match ($sort) {
-
             'oldest' => $query->oldest(),
 
-            'name_asc' => $query->orderBy('name', 'asc'),
+            'name_asc' => $query->orderBy(
+                'name',
+                'asc'
+            ),
 
-            'name_desc' => $query->orderBy('name', 'desc'),
+            'name_desc' => $query->orderBy(
+                'name',
+                'desc'
+            ),
 
             'price_low' => $query->orderByRaw(
                 'COALESCE(price, min_price, 0) ASC'
@@ -120,144 +100,80 @@ class PackageController extends Controller
             ),
 
             default => $query->latest(),
-
         };
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Vendor Visibility
-        |--------------------------------------------------------------------------
-        |
-        | Vendors can only see their own packages.
-        | Super admins can see all packages.
-        |
-        */
-
-        if (
-            auth()->check() &&
-            auth()->user()->role === 'vendor'
-        ) {
-
-            $vendor = Vendor::where(
-                'owner_user_id',
-                auth()->id()
-            )->first();
-
-            if ($vendor) {
-
-                $query->where(
-                    'vendor_id',
-                    $vendor->id
-                );
-
-            } else {
-
-                $query->whereRaw('1 = 0');
-
-            }
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Pagination
-        |--------------------------------------------------------------------------
-        */
 
         $packages = $query
             ->paginate(15)
             ->withQueryString();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Filter Data
-        |--------------------------------------------------------------------------
-        */
-
-        $vendors = collect();
-
-        if (
-            auth()->check() &&
-            auth()->user()->role === 'super_admin'
-        ) {
-
-            $vendors = Vendor::query()
-                ->orderBy('business_name')
-                ->get([
-                    'id',
-                    'business_name',
-                ]);
-        }
-
-
-        return view('packages.index', compact(
-            'packages',
-            'vendors'
-        ));
+        return view(
+            'packages.index',
+            compact(
+                'packages',
+                'vendor'
+            )
+        );
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Show Create Form
+    | CREATE
     |--------------------------------------------------------------------------
     */
 
-    public function create(): View
+    public function create(Vendor $vendor): View
     {
-        $vendors = collect();
-
+        $this->ensureVendorAccess($vendor);
 
         /*
         |--------------------------------------------------------------------------
-        | Super Admin can select vendor
+        | IMPORTANT
+        |--------------------------------------------------------------------------
+        |
+        | Vendor can select ANY active service from the global services table.
+        |
+        | We intentionally DO NOT use:
+        |
+        | $vendor->services()
+        |
         |--------------------------------------------------------------------------
         */
 
-        if (
-            auth()->check() &&
-            auth()->user()->role === 'super_admin'
-        ) {
+        $services = Service::query()
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get();
 
-            $vendors = Vendor::query()
-                ->orderBy('business_name')
-                ->get([
-                    'id',
-                    'business_name',
-                ]);
-        }
-
-
-        return view('packages.create', compact(
-            'vendors'
-        ));
+        return view(
+            'packages.create',
+            compact(
+                'vendor',
+                'services'
+            )
+        );
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Store Package
+    | STORE
     |--------------------------------------------------------------------------
     */
 
-    public function store(Request $request): RedirectResponse
-    {
+    public function store(
+        Request $request,
+        Vendor $vendor
+    ): RedirectResponse {
+        $this->ensureVendorAccess($vendor);
+
         /*
         |--------------------------------------------------------------------------
-        | Validation
+        | Validate Package
         |--------------------------------------------------------------------------
         */
 
         $validated = $request->validate([
-
-            'vendor_id' => [
-                'nullable',
-                'integer',
-                'exists:vendors,id',
-            ],
-
             'name' => [
                 'required',
                 'string',
@@ -317,43 +233,40 @@ class PackageController extends Controller
                 'in:active,inactive',
             ],
 
+            /*
+            |--------------------------------------------------------------------------
+            | Package Services
+            |--------------------------------------------------------------------------
+            */
+
+            'services' => [
+                'nullable',
+                'array',
+            ],
+
+            'services.*.service_id' => [
+                'required',
+                'integer',
+                'distinct',
+                'exists:services,id',
+            ],
+
+            'services.*.quantity' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
+
+            'services.*.description' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
         ]);
 
-
         /*
         |--------------------------------------------------------------------------
-        | Resolve Vendor
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            auth()->check() &&
-            auth()->user()->role === 'vendor'
-        ) {
-
-            $vendor = Vendor::where(
-                'owner_user_id',
-                auth()->id()
-            )->firstOrFail();
-
-            $validated['vendor_id'] = $vendor->id;
-
-        } else {
-
-            if (empty($validated['vendor_id'])) {
-
-                return back()
-                    ->withInput()
-                    ->withErrors([
-                        'vendor_id' => 'Please select a vendor.',
-                    ]);
-            }
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Generate Slug
+        | Generate Unique Slug
         |--------------------------------------------------------------------------
         */
 
@@ -361,18 +274,50 @@ class PackageController extends Controller
             $validated['name']
         );
 
-
         /*
         |--------------------------------------------------------------------------
-        | Create Package
+        | Separate Services From Package Data
         |--------------------------------------------------------------------------
         */
 
-        $package = Package::create($validated);
+        $services = $validated['services'] ?? [];
 
+        unset($validated['services']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create Package + Services
+        |--------------------------------------------------------------------------
+        */
+
+        $package = DB::transaction(function () use (
+            $validated,
+            $services,
+            $vendor
+        ) {
+            /*
+            |--------------------------------------------------------------------------
+            | Always force the authenticated vendor's vendor_id
+            |--------------------------------------------------------------------------
+            */
+
+            $validated['vendor_id'] = $vendor->id;
+
+            $package = Package::create($validated);
+
+            $this->syncPackageServices(
+                $package,
+                $services
+            );
+
+            return $package;
+        });
 
         return redirect()
-            ->route('packages.index')
+            ->route(
+                'vendors.packages.index',
+                ['vendor' => $vendor]
+            )
             ->with(
                 'success',
                 "Package '{$package->name}' was created successfully."
@@ -382,13 +327,20 @@ class PackageController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Display Package
+    | SHOW
     |--------------------------------------------------------------------------
     */
 
-    public function show(Package $package): View
-    {
-        $this->ensurePackageAccess($package);
+    public function show(
+        Vendor $vendor,
+        Package $package
+    ): View {
+        $this->ensureVendorAccess($vendor);
+
+        $this->ensurePackageBelongsToVendor(
+            $package,
+            $vendor
+        );
 
         $package->load([
             'vendor',
@@ -397,42 +349,9 @@ class PackageController extends Controller
 
         return view(
             'packages.show',
-            compact('package')
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Show Edit Form
-    |--------------------------------------------------------------------------
-    */
-
-    public function edit(Package $package): View
-    {
-        $this->ensurePackageAccess($package);
-
-        $vendors = collect();
-
-        if (
-            auth()->check() &&
-            auth()->user()->role === 'super_admin'
-        ) {
-
-            $vendors = Vendor::query()
-                ->orderBy('business_name')
-                ->get([
-                    'id',
-                    'business_name',
-                ]);
-        }
-
-
-        return view(
-            'packages.edit',
             compact(
                 'package',
-                'vendors'
+                'vendor'
             )
         );
     }
@@ -440,32 +359,78 @@ class PackageController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Update Package
+    | EDIT
+    |--------------------------------------------------------------------------
+    */
+
+    public function edit(
+        Vendor $vendor,
+        Package $package
+    ): View {
+        $this->ensureVendorAccess($vendor);
+
+        $this->ensurePackageBelongsToVendor(
+            $package,
+            $vendor
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ALL ACTIVE GLOBAL SERVICES
+        |--------------------------------------------------------------------------
+        */
+
+        $services = Service::query()
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Existing Package Services
+        |--------------------------------------------------------------------------
+        */
+
+        $package->load([
+            'packageServices.service',
+        ]);
+
+        return view(
+            'packages.edit',
+            compact(
+                'package',
+                'vendor',
+                'services'
+            )
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE
     |--------------------------------------------------------------------------
     */
 
     public function update(
         Request $request,
+        Vendor $vendor,
         Package $package
     ): RedirectResponse {
+        $this->ensureVendorAccess($vendor);
 
-        $this->ensurePackageAccess($package);
-
+        $this->ensurePackageBelongsToVendor(
+            $package,
+            $vendor
+        );
 
         /*
         |--------------------------------------------------------------------------
-        | Validation
+        | Validate Package
         |--------------------------------------------------------------------------
         */
 
         $validated = $request->validate([
-
-            'vendor_id' => [
-                'nullable',
-                'integer',
-                'exists:vendors,id',
-            ],
-
             'name' => [
                 'required',
                 'string',
@@ -476,7 +441,10 @@ class PackageController extends Controller
                 'nullable',
                 'string',
                 'max:255',
-                'unique:packages,slug,' . $package->id,
+                Rule::unique(
+                    'packages',
+                    'slug'
+                )->ignore($package->id),
             ],
 
             'description' => [
@@ -525,43 +493,40 @@ class PackageController extends Controller
                 'in:active,inactive',
             ],
 
+            /*
+            |--------------------------------------------------------------------------
+            | Package Services
+            |--------------------------------------------------------------------------
+            */
+
+            'services' => [
+                'nullable',
+                'array',
+            ],
+
+            'services.*.service_id' => [
+                'required',
+                'integer',
+                'distinct',
+                'exists:services,id',
+            ],
+
+            'services.*.quantity' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
+
+            'services.*.description' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
         ]);
 
-
         /*
         |--------------------------------------------------------------------------
-        | Resolve Vendor
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            auth()->check() &&
-            auth()->user()->role === 'vendor'
-        ) {
-
-            $vendor = Vendor::where(
-                'owner_user_id',
-                auth()->id()
-            )->firstOrFail();
-
-            $validated['vendor_id'] = $vendor->id;
-
-        } else {
-
-            if (empty($validated['vendor_id'])) {
-
-                return back()
-                    ->withInput()
-                    ->withErrors([
-                        'vendor_id' => 'Please select a vendor.',
-                    ]);
-            }
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Slug
+        | Generate New Slug When Name Changes
         |--------------------------------------------------------------------------
         */
 
@@ -569,25 +534,54 @@ class PackageController extends Controller
             empty($validated['slug']) ||
             $validated['slug'] !== $package->slug
         ) {
-
             $validated['slug'] = $this->generateUniqueSlug(
                 $validated['name'],
                 $package->id
             );
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | Update
+        | Separate Services
         |--------------------------------------------------------------------------
         */
 
-        $package->update($validated);
+        $services = $validated['services'] ?? [];
 
+        unset($validated['services']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Package + Services
+        |--------------------------------------------------------------------------
+        */
+
+        DB::transaction(function () use (
+            $package,
+            $validated,
+            $services
+        ) {
+            /*
+            |--------------------------------------------------------------------------
+            | Never allow vendor_id to be changed
+            |--------------------------------------------------------------------------
+            */
+
+            unset($validated['vendor_id']);
+
+            $package->update($validated);
+
+            $this->syncPackageServices(
+                $package,
+                $services
+            );
+        });
 
         return redirect()
-            ->route('packages.index')
+            ->route(
+                'vendors.packages.index',
+                ['vendor' => $vendor]
+            )
             ->with(
                 'success',
                 "Package '{$package->name}' was updated successfully."
@@ -597,34 +591,46 @@ class PackageController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Delete Package
+    | DESTROY
     |--------------------------------------------------------------------------
     */
 
     public function destroy(
+        Vendor $vendor,
         Package $package
     ): RedirectResponse {
+        $this->ensureVendorAccess($vendor);
 
-        $this->ensurePackageAccess($package);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Delete Package
-        |--------------------------------------------------------------------------
-        |
-        | PackageService records should be removed automatically by the
-        | database foreign-key cascade if configured in the migration.
-        |
-        */
+        $this->ensurePackageBelongsToVendor(
+            $package,
+            $vendor
+        );
 
         $packageName = $package->name;
 
-        $package->delete();
+        DB::transaction(function () use ($package) {
+            /*
+            |--------------------------------------------------------------------------
+            | Remove Package Services
+            |--------------------------------------------------------------------------
+            */
 
+            $package->packageServices()->delete();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Remove Package
+            |--------------------------------------------------------------------------
+            */
+
+            $package->delete();
+        });
 
         return redirect()
-            ->route('packages.index')
+            ->route(
+                'vendors.packages.index',
+                ['vendor' => $vendor]
+            )
             ->with(
                 'success',
                 "Package '{$packageName}' was deleted successfully."
@@ -634,7 +640,59 @@ class PackageController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Generate Unique Slug
+    | SYNC PACKAGE SERVICES
+    |--------------------------------------------------------------------------
+    */
+
+    private function syncPackageServices(
+        Package $package,
+        array $services
+    ): void {
+        /*
+        |--------------------------------------------------------------------------
+        | No Services
+        |--------------------------------------------------------------------------
+        */
+
+        if (empty($services)) {
+            $package->services()->sync([]);
+
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Prepare Pivot Data
+        |--------------------------------------------------------------------------
+        */
+
+        $syncData = [];
+
+        foreach ($services as $service) {
+            $serviceId = (int) $service['service_id'];
+
+            $syncData[$serviceId] = [
+                'quantity' => !empty($service['quantity'])
+                    ? (int) $service['quantity']
+                    : 1,
+
+                'description' => $service['description'] ?? null,
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Sync Package Services
+        |--------------------------------------------------------------------------
+        */
+
+        $package->services()->sync($syncData);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | GENERATE UNIQUE SLUG
     |--------------------------------------------------------------------------
     */
 
@@ -642,7 +700,6 @@ class PackageController extends Controller
         string $name,
         ?int $ignoreId = null
     ): string {
-
         $baseSlug = Str::slug($name);
 
         if ($baseSlug === '') {
@@ -650,9 +707,7 @@ class PackageController extends Controller
         }
 
         $slug = $baseSlug;
-
         $counter = 1;
-
 
         while (
             Package::query()
@@ -667,12 +722,9 @@ class PackageController extends Controller
                 )
                 ->exists()
         ) {
-
             $slug = $baseSlug . '-' . $counter;
-
             $counter++;
         }
-
 
         return $slug;
     }
@@ -680,14 +732,13 @@ class PackageController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Ensure Package Access
+    | ENSURE VENDOR ACCESS
     |--------------------------------------------------------------------------
     */
 
-    private function ensurePackageAccess(
-        Package $package
+    private function ensureVendorAccess(
+        Vendor $vendor
     ): void {
-
         /*
         |--------------------------------------------------------------------------
         | Super Admin
@@ -701,7 +752,6 @@ class PackageController extends Controller
             return;
         }
 
-
         /*
         |--------------------------------------------------------------------------
         | Vendor
@@ -712,30 +762,61 @@ class PackageController extends Controller
             auth()->check() &&
             auth()->user()->role === 'vendor'
         ) {
+            /*
+            |--------------------------------------------------------------------------
+            | IMPORTANT:
+            | Vendor ownership uses user_id
+            |--------------------------------------------------------------------------
+            */
 
-            $vendor = Vendor::where(
-                'owner_user_id',
-                auth()->id()
-            )->first();
+            $currentVendor = Vendor::query()
+                ->where(
+                    'user_id',
+                    auth()->id()
+                )
+                ->first();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Vendor can only access their own vendor
+            |--------------------------------------------------------------------------
+            */
 
             if (
-                !$vendor ||
-                $package->vendor_id !== $vendor->id
+                !$currentVendor ||
+                $currentVendor->id !== $vendor->id
             ) {
-
                 abort(403);
             }
 
             return;
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | Unauthorized
+        | Everyone Else
         |--------------------------------------------------------------------------
         */
 
         abort(403);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ENSURE PACKAGE BELONGS TO VENDOR
+    |--------------------------------------------------------------------------
+    */
+
+    private function ensurePackageBelongsToVendor(
+        Package $package,
+        Vendor $vendor
+    ): void {
+        if (
+            (int) $package->vendor_id !==
+            (int) $vendor->id
+        ) {
+            abort(403);
+        }
     }
 }

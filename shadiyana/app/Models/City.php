@@ -78,7 +78,15 @@ class City extends Model
     {
         return $this->hasMany(Vendor::class);
     }
-
+ /**
+     * A city has many customer profiles.
+     *
+     * customer_profiles.city_id references cities.id.
+     */
+    public function customerProfiles(): HasMany
+    {
+        return $this->hasMany(CustomerProfile::class);
+    }
 
     /*
     |--------------------------------------------------------------------------
