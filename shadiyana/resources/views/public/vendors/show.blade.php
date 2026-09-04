@@ -89,7 +89,7 @@
 
     <section class="border-b border-[#F0DCE1] bg-white">
 
-        <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
 
             <nav class="flex flex-wrap items-center gap-2 text-sm">
 
@@ -140,12 +140,12 @@
                     GALLERY
                 =================================================== --}}
 
-                <div class="py-5 lg:py-8">
+                <div class="py-5 lg:py-7">
 
                     @if($galleryImages->count() > 0)
 
                         <div
-                            class="grid h-[420px] gap-3 overflow-hidden rounded-3xl sm:h-[500px]"
+                            class="grid h-[340px] gap-3 overflow-hidden rounded-3xl sm:h-[420px]"
                             style="
                                 grid-template-columns:
                                 {{ $galleryImages->count() > 1 ? '1.5fr 1fr' : '1fr' }};
@@ -241,7 +241,7 @@
                     @else
 
                         {{-- Empty Gallery --}}
-                        <div class="flex h-[420px] items-center justify-center rounded-3xl bg-[#FBEBEF] sm:h-[500px]">
+                        <div class="flex h-[340px] items-center justify-center rounded-3xl bg-[#FBEBEF] sm:h-[420px]">
 
                             <div class="text-center">
 
@@ -280,12 +280,12 @@
                     VENDOR INFORMATION
                 =================================================== --}}
 
-                <div class="flex flex-col justify-center px-0 py-7 lg:px-12 lg:py-12">
+                <div class="flex flex-col justify-center px-0 py-6 lg:px-10 lg:py-10">
 
                     {{-- Category --}}
                     @if($primaryTaxonomy)
 
-                        <div class="mb-4">
+                        <div class="mb-3">
 
                             <span class="inline-flex items-center gap-1.5 rounded-full bg-[#FBEBEF] px-4 py-1.5 text-xs font-semibold text-[#D7385E]">
 
@@ -353,7 +353,7 @@
 
 
                             {{-- Rating --}}
-                            <div class="mt-3 flex flex-wrap items-center gap-3">
+                            <div class="mt-2 flex flex-wrap items-center gap-3">
 
                                 <div class="flex items-center gap-1">
 
@@ -388,7 +388,7 @@
                     {{-- Location --}}
                     @if($locationText)
 
-                        <div class="mt-6 flex items-start gap-3 text-gray-600">
+                        <div class="mt-5 flex items-start gap-3 text-gray-600">
 
                             <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#FBEBEF] text-[#D7385E]">
 
@@ -435,7 +435,7 @@
                     {{-- Taxonomies --}}
                     @if($vendor->taxonomies->isNotEmpty())
 
-                        <div class="mt-5 flex flex-wrap gap-2">
+                        <div class="mt-4 flex flex-wrap gap-2">
 
                             @foreach($vendor->taxonomies->take(6) as $taxonomy)
 
@@ -453,7 +453,7 @@
                     {{-- Description --}}
                     @if($vendor->description)
 
-                        <p class="mt-6 max-w-xl text-[15px] leading-7 text-gray-500">
+                        <p class="mt-5 max-w-xl text-[15px] leading-7 text-gray-500">
 
                             {{ \Illuminate\Support\Str::limit(
                                 strip_tags($vendor->description),
@@ -466,7 +466,7 @@
 
 
                     {{-- Actions --}}
-                    <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+                    <div class="mt-7 flex flex-col gap-3 sm:flex-row">
 
                         {{--
                             Both actions below route through the centralized
@@ -482,7 +482,7 @@
                                 href="{{ $leadWhatsappLink }}"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="inline-flex items-center justify-center gap-2 rounded-full bg-[#D7385E] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#A62347] hover:shadow-md"
+                                class="inline-flex items-center justify-center gap-2 rounded-full bg-[#D7385E] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#A62347] hover:shadow-md"
                             >
 
                                 <svg
@@ -512,7 +512,7 @@
                                 href="{{ $leadWhatsappLink }}"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="inline-flex items-center justify-center gap-2 rounded-full border border-[#D7385E] bg-white px-6 py-3.5 text-sm font-semibold text-[#D7385E] transition hover:bg-[#FBEBEF]"
+                                class="inline-flex items-center justify-center gap-2 rounded-full border border-[#D7385E] bg-white px-6 py-3 text-sm font-semibold text-[#D7385E] transition hover:bg-[#FBEBEF]"
                             >
 
                                 <svg
@@ -559,7 +559,7 @@
                 <a
                     href="#about"
                     data-tab-link
-                    class="tab-link relative py-4 text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-[#D7385E]"
+                    class="tab-link relative py-3.5 text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-[#D7385E]"
                 >
                     About
                 </a>
@@ -567,7 +567,7 @@
                 <a
                     href="#services"
                     data-tab-link
-                    class="tab-link relative py-4 text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-[#D7385E]"
+                    class="tab-link relative py-3.5 text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-[#D7385E]"
                 >
                     Services
                 </a>
@@ -575,7 +575,7 @@
                 <a
                     href="#packages"
                     data-tab-link
-                    class="tab-link relative py-4 text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-[#D7385E]"
+                    class="tab-link relative py-3.5 text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-[#D7385E]"
                 >
                     Packages
                 </a>
@@ -583,7 +583,7 @@
                 <a
                     href="#location"
                     data-tab-link
-                    class="tab-link relative py-4 text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-[#D7385E]"
+                    class="tab-link relative py-3.5 text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-[#D7385E]"
                 >
                     Location
                 </a>
@@ -604,7 +604,7 @@
         MAIN CONTENT
     ============================================================= --}}
 
-    <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <main class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
 
         {{-- ========================================================
             ABOUT
@@ -631,13 +631,13 @@
 
                 @if($vendor->description)
 
-                    <div class="mt-6 text-[15px] leading-8 text-gray-600">
+                    <div class="mt-5 text-[15px] leading-8 text-gray-600">
                         {!! nl2br(e(strip_tags($vendor->description))) !!}
                     </div>
 
                 @else
 
-                    <p class="mt-6 text-gray-500">
+                    <p class="mt-5 text-gray-500">
                         Information about this vendor will be available soon.
                     </p>
 
@@ -654,7 +654,7 @@
 
         <section
             id="services"
-            class="mt-20 scroll-mt-24"
+            class="mt-14 scroll-mt-24"
         >
 
             <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -684,7 +684,7 @@
 
             @if($vendor->services->isNotEmpty())
 
-                <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
                     @foreach($vendor->services as $service)
 
@@ -742,7 +742,7 @@
 
             @else
 
-                <div class="mt-8 rounded-2xl border border-dashed border-[#EEE1CB] bg-[#FFFCF8] p-10 text-center">
+                <div class="mt-7 rounded-2xl border border-dashed border-[#EEE1CB] bg-[#FFFCF8] p-8 text-center">
 
                     <p class="text-sm text-gray-500">
                         Services information will be available soon.
@@ -761,7 +761,7 @@
 
         @if($vendor->eventTypes->isNotEmpty())
 
-            <section class="mt-20">
+            <section class="mt-14">
 
                 <div class="flex items-center gap-2 text-sm font-medium text-[#C6952F]">
 
@@ -778,7 +778,7 @@
                     Events we cover
                 </h2>
 
-                <div class="mt-7 flex flex-wrap gap-3">
+                <div class="mt-6 flex flex-wrap gap-3">
 
                     @foreach($vendor->eventTypes as $eventType)
 
@@ -801,7 +801,7 @@
 
         <section
             id="packages"
-            class="mt-20 scroll-mt-24"
+            class="mt-14 scroll-mt-24"
         >
 
             <div>
@@ -821,7 +821,7 @@
                     Packages
                 </h2>
 
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
                     Choose from the packages offered by {{ $vendor->business_name }}.
                 </p>
 
@@ -830,7 +830,7 @@
 
             @if($vendor->packages->isNotEmpty())
 
-                <div class="mt-8 grid gap-6 lg:grid-cols-2">
+                <div class="mt-7 grid gap-5 lg:grid-cols-2">
 
                     @foreach($vendor->packages as $package)
 
@@ -846,11 +846,11 @@
 
                         @endphp
 
-                        <article class="group relative overflow-hidden rounded-3xl border border-[#EEE1CB] bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-[#C6952F]/60 hover:shadow-[0_20px_40px_-20px_rgba(122,16,48,0.25)]">
+                        <article class="group relative overflow-hidden rounded-3xl border border-[#EEE1CB] bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-[#C6952F]/60 hover:shadow-[0_20px_40px_-20px_rgba(122,16,48,0.25)]">
 
                             <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#D7385E] to-[#C6952F]"></div>
 
-                            <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+                            <div class="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
 
                                 <div class="min-w-0">
 
@@ -860,7 +860,7 @@
 
                                     @if($package->description)
 
-                                        <p class="mt-2 text-sm leading-6 text-gray-500">
+                                        <p class="mt-1.5 text-sm leading-6 text-gray-500">
                                             {{ $package->description }}
                                         </p>
 
@@ -925,7 +925,7 @@
                                 $package->guest_capacity
                             )
 
-                                <div class="mt-5 flex flex-wrap gap-2">
+                                <div class="mt-4 flex flex-wrap gap-2">
 
                                     @if($package->duration)
 
@@ -990,7 +990,7 @@
                             {{-- Included Services --}}
                             @if($package->services->isNotEmpty())
 
-                                <div class="mt-6 border-t border-dashed border-[#EEE1CB] pt-5">
+                                <div class="mt-5 border-t border-dashed border-[#EEE1CB] pt-4">
 
                                     <p class="mb-3 text-xs font-semibold text-gray-400">
                                         Includes
@@ -1038,7 +1038,7 @@
 
             @else
 
-                <div class="mt-8 rounded-2xl border border-dashed border-[#EEE1CB] bg-[#FFFCF8] p-10 text-center">
+                <div class="mt-7 rounded-2xl border border-dashed border-[#EEE1CB] bg-[#FFFCF8] p-8 text-center">
 
                     <p class="text-sm text-gray-500">
                         Package information will be available soon.
@@ -1057,7 +1057,7 @@
 
         <section
             id="location"
-            class="mt-20 scroll-mt-24"
+            class="mt-14 scroll-mt-24"
         >
 
             <div>
@@ -1080,15 +1080,15 @@
             </div>
 
 
-            <div class="mt-8 grid overflow-hidden rounded-3xl border border-[#EEE1CB] bg-white lg:grid-cols-[.7fr_1.3fr]">
+            <div class="mt-7 grid overflow-hidden rounded-3xl border border-[#EEE1CB] bg-white lg:grid-cols-[.7fr_1.3fr]">
 
                 {{-- Address --}}
-                <div class="p-7 sm:p-9">
+                <div class="p-6 sm:p-7">
 
-                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FBEBEF] text-[#D7385E]">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FBEBEF] text-[#D7385E]">
 
                         <svg
-                            class="h-6 w-6"
+                            class="h-5 w-5"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1114,7 +1114,7 @@
 
                     @if($vendor->city)
 
-                        <p class="mt-6 text-xs font-medium text-gray-400">
+                        <p class="mt-4 text-xs font-medium text-gray-400">
                             City
                         </p>
 
@@ -1127,7 +1127,7 @@
 
                     @if($vendor->address)
 
-                        <p class="mt-5 text-xs font-medium text-gray-400">
+                        <p class="mt-4 text-xs font-medium text-gray-400">
                             Address
                         </p>
 
@@ -1149,7 +1149,7 @@
                             href="https://www.openstreetmap.org/?mlat={{ (float) $vendor->latitude }}&mlon={{ (float) $vendor->longitude }}#map=16/{{ (float) $vendor->latitude }}/{{ (float) $vendor->longitude }}"
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#D7385E] transition hover:text-[#A62347] hover:underline"
+                            class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#D7385E] transition hover:text-[#A62347] hover:underline"
                         >
 
                             <svg
@@ -1195,7 +1195,7 @@
                     @endif
 
 
-                    @if($vendor->phone_number)
+                    <!-- @if($vendor->phone_number)
 
                         <a
                             href="tel:{{ $vendor->phone_number }}"
@@ -1220,14 +1220,14 @@
 
                         </a>
 
-                    @endif
+                    @endif -->
 
                 </div>
 
 
                 {{-- Map --}}
 {{-- Map --}}
-<div class="min-h-[360px] bg-[#FBEBEF]">
+<div class="min-h-[260px] bg-[#FBEBEF]">
 
     @if(
         $vendor->latitude !== null &&
@@ -1260,12 +1260,12 @@
                 . '#map=16/' . $latitude . '/' . $longitude;
         @endphp
 
-        <div class="relative h-full min-h-[360px]">
+        <div class="relative h-full min-h-[260px]">
 
             <iframe
                 title="Location of {{ $vendor->business_name }}"
                 src="{{ $mapUrl }}"
-                class="h-full min-h-[360px] w-full border-0"
+                class="h-full min-h-[260px] w-full border-0"
                 loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"
             ></iframe>
@@ -1275,7 +1275,7 @@
                 href="{{ $locationUrl }}"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-semibold text-[#241019] shadow-lg transition hover:bg-[#FBEBEF] hover:text-[#D7385E]"
+                class="absolute bottom-3 right-3 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-semibold text-[#241019] shadow-lg transition hover:bg-[#FBEBEF] hover:text-[#D7385E]"
             >
 
                 <svg
@@ -1300,7 +1300,7 @@
 
     @else
 
-        <div class="flex h-full min-h-[360px] items-center justify-center">
+        <div class="flex h-full min-h-[260px] items-center justify-center">
 
             <div class="text-center">
 
@@ -1353,7 +1353,7 @@
 
         @if($relatedVendors->isNotEmpty())
 
-            <section class="mt-24">
+            <section class="mt-16">
 
                 <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
 
@@ -1383,7 +1383,7 @@
                 </div>
 
 
-                <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="mt-7 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 
                     @foreach($relatedVendors as $relatedVendor)
 
@@ -1408,7 +1408,7 @@
                         >
 
                             {{-- Image --}}
-                            <div class="relative h-52 overflow-hidden bg-[#FBEBEF]">
+                            <div class="relative h-48 overflow-hidden bg-[#FBEBEF]">
 
                                 @if($relatedImageUrl)
 
@@ -1478,7 +1478,7 @@
 
 
                             {{-- Content --}}
-                            <div class="p-5">
+                            <div class="p-4">
 
                                 <div class="flex items-start justify-between gap-3">
 
@@ -1503,7 +1503,7 @@
                                 </div>
 
 
-                                <div class="mt-3 flex items-center gap-2 text-sm">
+                                <div class="mt-2.5 flex items-center gap-2 text-sm">
 
                                     <span class="flex items-center gap-1 font-semibold text-[#241019]">
 
@@ -1531,7 +1531,7 @@
 
                                 @if($relatedVendor->city)
 
-                                    <div class="mt-3 flex items-center gap-1.5 text-xs text-gray-500">
+                                    <div class="mt-2.5 flex items-center gap-1.5 text-xs text-gray-500">
 
                                         <svg
                                             class="h-4 w-4 text-gray-400"

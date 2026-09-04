@@ -22,8 +22,8 @@
     Single background image version
 ============================================================= --}}
 <section
-    class="relative z-30 overflow-visible bg-transparent bg-cover bg-center bg-no-repeat py-[60px] md:py-[75px]"
-    style="background-image: url('{{ asset('images/home/chatgptimage.png') }}');"
+    class="relative z-30 overflow-visible bg-transparent bg-cover bg-center bg-no-repeat py-10 md:py-14 lg:py-16"
+    style="background-image: url('{{ asset('images/home/home-section.png') }}');"
     x-data="{
         tab: 'cityService',
 
@@ -43,7 +43,7 @@
         Keeps the search UI and text readable over the image.
     ========================================================= --}}
     <div
-        class="pointer-events-none absolute inset-0 z-0 "
+        class="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-white/10 via-transparent to-white/40"
         aria-hidden="true"
     ></div>
 
@@ -51,13 +51,13 @@
     {{-- ========================================================
         CONTENT
     ========================================================= --}}
-    <div class="relative z-20 mx-auto max-w-[900px] px-5">
+    <div class="relative z-20 mx-auto max-w-[760px] px-5 sm:px-6">
 
         {{-- ====================================================
             HEADING
         ===================================================== --}}
         <h1
-            class="mb-6 text-center text-[20px] font-semibold leading-tight text-[#132743] md:text-[30px]"
+            class="mb-4 text-center text-[22px] font-semibold leading-tight tracking-tight text-[#132743] sm:text-[28px] md:mb-5 md:text-[32px]"
         >
             Plan your
             <span class="text-[#D7385E]">Shadi</span>
@@ -69,14 +69,14 @@
             SEARCH CARD
         ===================================================== --}}
         <div
-    class="relative z-50 rounded-[28px] border border-white/70 bg-white/88 px-5 pb-6 pt-5 shadow-[0_16px_40px_rgba(19,39,67,0.12)] backdrop-blur-sm md:px-8"
+    class="relative z-50 rounded-[22px] border border-white/70 bg-white/90 px-4 pb-4 pt-4 shadow-[0_14px_36px_rgba(19,39,67,0.14)] backdrop-blur-md sm:px-6 md:px-7 md:pb-5 md:pt-5"
 >
 
             {{-- ==================================================
                 TABS
             =================================================== --}}
             <div
-                class="mb-4 flex justify-center gap-8 border-b border-[#EDEDED]"
+                class="mb-3 flex justify-center gap-6 border-b border-[#EDEDED]"
             >
 
                 {{-- Service & City --}}
@@ -87,7 +87,7 @@
                         serviceOpen = false;
                         cityOpen = false;
                     "
-                    class="relative pb-3 text-[15px] font-semibold transition-colors"
+                    class="relative pb-2 text-[13px] font-semibold transition-colors md:text-[14px]"
                     :class="
                         tab === 'cityService'
                             ? 'text-[#132743]'
@@ -115,7 +115,7 @@
                         serviceOpen = false;
                         cityOpen = false;
                     "
-                    class="relative pb-3 text-[15px] font-semibold transition-colors"
+                    class="relative pb-2 text-[13px] font-semibold transition-colors md:text-[14px]"
                     :class="
                         tab === 'name'
                             ? 'text-[#132743]'
@@ -147,7 +147,7 @@
             >
 
                 <div
-                    class="relative flex flex-col overflow-visible rounded-[20px] border border-[#ECECEC] bg-white md:flex-row md:items-stretch md:rounded-full"
+                    class="relative flex flex-col overflow-visible rounded-[16px] border border-[#ECECEC] bg-white md:flex-row md:items-stretch md:rounded-full"
                 >
 
                     {{-- ==================================================
@@ -165,7 +165,7 @@
                                 serviceOpen = !serviceOpen;
                                 cityOpen = false;
                             "
-                            class="flex h-[62px] w-full items-center justify-between px-6 text-[16px] transition-colors md:px-8"
+                            class="flex h-11 w-full items-center justify-between px-4 text-[14px] transition-colors md:h-12 md:px-5"
                             :class="
                                 service
                                     ? 'text-[#132743]'
@@ -173,14 +173,14 @@
                             "
                         >
 
-                            <div class="flex min-w-0 items-center gap-4">
+                            <div class="flex min-w-0 items-center gap-2.5">
 
                                 {{-- Service Icon --}}
                                 <span
-                                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FBEBEF] text-[#D7385E]"
+                                    class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FBEBEF] text-[#D7385E]"
                                 >
                                     <svg
-                                        class="h-[17px] w-[17px]"
+                                        class="h-[14px] w-[14px]"
                                         viewBox="0 0 24 24"
                                         fill="none"
                                         stroke="currentColor"
@@ -208,7 +208,7 @@
 
                             {{-- Arrow --}}
                             <svg
-                                class="h-4 w-4 shrink-0 text-[#6B7983] transition-transform duration-200"
+                                class="h-3.5 w-3.5 shrink-0 text-[#6B7983] transition-transform duration-200"
                                 :class="serviceOpen && 'rotate-180'"
                                 viewBox="0 0 24 24"
                                 fill="none"
@@ -243,37 +243,36 @@
                             x-transition:leave="transition ease-in duration-100"
                             x-transition:leave-start="opacity-100 translate-y-0"
                             x-transition:leave-end="opacity-0 -translate-y-2"
-                            class="absolute left-0 top-[calc(100%+14px)] z-[9999] w-[min(90vw,560px)] overflow-hidden rounded-[24px] border border-[#ECECEC] bg-white shadow-[0_24px_60px_rgba(19,39,67,0.18)]"
+                            class="absolute left-0 top-[calc(100%+10px)] z-[9999] w-[min(78vw,264px)] overflow-hidden rounded-[16px] border border-[#ECECEC] bg-white shadow-[0_16px_36px_rgba(19,39,67,0.14)]"
                         >
 
                             @if($services->count())
 
                                 {{-- Dropdown Header --}}
                                 <div
-                                    class="flex items-center justify-between border-b border-[#F1F1F1] bg-white px-5 py-4"
+                                    class="flex items-center justify-between gap-2 border-b border-[#F1F1F1] bg-white px-3.5 py-2.5"
                                 >
 
-                                    <div>
+                                    <div class="min-w-0">
 
                                         <h3
-                                            class="text-[16px] font-bold text-[#132743]"
+                                            class="text-[13px] font-bold text-[#132743]"
                                         >
                                             Choose a service
                                         </h3>
 
                                         <p
-                                            class="mt-0.5 text-[13px] text-[#89939D]"
+                                            class="mt-0.5 truncate text-[11px] text-[#89939D]"
                                         >
-                                            Select the service you're looking for
+                                            {{ $services->count() }} {{ Str::plural('option', $services->count()) }} available
                                         </p>
 
                                     </div>
 
                                     <span
-                                        class="shrink-0 rounded-full bg-[#FBEBEF] px-3 py-1.5 text-[12px] font-bold text-[#D7385E]"
+                                        class="shrink-0 rounded-full bg-[#FBEBEF] px-2 py-0.5 text-[11px] font-bold text-[#D7385E]"
                                     >
                                         {{ $services->count() }}
-                                        {{ Str::plural('SERVICE', $services->count()) }}
                                     </span>
 
                                 </div>
@@ -281,11 +280,11 @@
 
                                 {{-- Dropdown Items --}}
                                 <div
-                                    class="max-h-[360px] overflow-y-auto p-3"
+                                    class="max-h-[264px] overflow-y-auto p-1.5 [scrollbar-width:thin]"
                                 >
 
                                     <div
-                                        class="space-y-5"
+                                        class="space-y-0.5"
                                     >
 
                                         @foreach($services as $serviceItem)
@@ -297,7 +296,7 @@
                                                     serviceLabel = @js($serviceItem->name);
                                                     serviceOpen = false;
                                                 "
-                                                class="group flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-all duration-150 hover:bg-[#FBEBEF]"
+                                                class="group relative flex w-full items-center gap-2 rounded-lg py-2 pl-3 pr-2 text-left transition-colors duration-150 hover:bg-[#FBEBEF]"
                                                 :class="
                                                     service === @js($serviceItem->slug)
                                                         ? 'bg-[#FBEBEF]'
@@ -305,9 +304,16 @@
                                                 "
                                             >
 
+                                                {{-- Selected accent --}}
+                                                <span
+                                                    x-show="service === @js($serviceItem->slug)"
+                                                    x-cloak
+                                                    class="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-[#D7385E]"
+                                                ></span>
+
                                                 {{-- Icon --}}
                                                 <span
-                                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FBEBEF] text-[#D7385E] transition-colors duration-150 group-hover:bg-[#D7385E] group-hover:text-white"
+                                                    class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#FBEBEF] text-[#D7385E] transition-colors duration-150 group-hover:bg-[#D7385E] group-hover:text-white"
                                                     :class="
                                                         service === @js($serviceItem->slug)
                                                             ? 'bg-[#D7385E] text-white'
@@ -315,11 +321,11 @@
                                                     "
                                                 >
                                                     <svg
-                                                        class="h-[17px] w-[17px]"
+                                                        class="h-[11px] w-[11px]"
                                                         viewBox="0 0 24 24"
                                                         fill="none"
                                                         stroke="currentColor"
-                                                        stroke-width="1.7"
+                                                        stroke-width="1.8"
                                                         stroke-linecap="round"
                                                         stroke-linejoin="round"
                                                     >
@@ -336,7 +342,7 @@
 
                                                 {{-- Name --}}
                                                 <span
-                                                    class="min-w-0 flex-1 truncate text-[15px] font-medium text-[#242424] transition-colors group-hover:text-[#D7385E]"
+                                                    class="min-w-0 flex-1 truncate text-[12.5px] font-medium text-[#242424] transition-colors group-hover:text-[#D7385E]"
                                                 >
                                                     {{ $serviceItem->name }}
                                                 </span>
@@ -346,7 +352,7 @@
                                                 <svg
                                                     x-show="service === @js($serviceItem->slug)"
                                                     x-cloak
-                                                    class="h-4 w-4 shrink-0 text-[#D7385E]"
+                                                    class="h-3.5 w-3.5 shrink-0 text-[#D7385E]"
                                                     viewBox="0 0 24 24"
                                                     fill="none"
                                                     stroke="currentColor"
@@ -368,13 +374,13 @@
                             @else
 
                                 {{-- Empty State --}}
-                                <div class="px-5 py-8 text-center">
+                                <div class="px-5 py-7 text-center">
 
                                     <div
-                                        class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FBEBEF] text-[#D7385E]"
+                                        class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#FBEBEF] text-[#D7385E]"
                                     >
                                         <svg
-                                            class="h-5 w-5"
+                                            class="h-4 w-4"
                                             viewBox="0 0 24 24"
                                             fill="none"
                                             stroke="currentColor"
@@ -386,7 +392,7 @@
                                     </div>
 
                                     <p
-                                        class="mt-3 text-sm font-semibold text-[#132743]"
+                                        class="mt-2 text-sm font-semibold text-[#132743]"
                                     >
                                         No services available
                                     </p>
@@ -406,7 +412,7 @@
 
                     {{-- Divider --}}
                     <div
-                        class="mx-6 h-px bg-[#ECECEC] md:my-[18px] md:mx-0 md:h-auto md:w-px"
+                        class="mx-4 h-px bg-[#ECECEC] md:my-3 md:mx-0 md:h-auto md:w-px"
                     ></div>
 
 
@@ -425,7 +431,7 @@
                                 cityOpen = !cityOpen;
                                 serviceOpen = false;
                             "
-                            class="flex h-[62px] w-full items-center justify-between px-6 text-[16px] transition-colors md:px-8"
+                            class="flex h-11 w-full items-center justify-between px-4 text-[14px] transition-colors md:h-12 md:px-5"
                             :class="
                                 city
                                     ? 'text-[#132743]'
@@ -433,14 +439,14 @@
                             "
                         >
 
-                            <div class="flex min-w-0 items-center gap-4">
+                            <div class="flex min-w-0 items-center gap-2.5">
 
                                 {{-- Location Icon --}}
                                 <span
-                                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FBEBEF] text-[#D7385E]"
+                                    class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FBEBEF] text-[#D7385E]"
                                 >
                                     <svg
-                                        class="h-[17px] w-[17px]"
+                                        class="h-[14px] w-[14px]"
                                         viewBox="0 0 24 24"
                                         fill="none"
                                         stroke="currentColor"
@@ -469,7 +475,7 @@
 
                             {{-- Arrow --}}
                             <svg
-                                class="h-4 w-4 shrink-0 text-[#6B7983] transition-transform duration-200"
+                                class="h-3.5 w-3.5 shrink-0 text-[#6B7983] transition-transform duration-200"
                                 :class="cityOpen && 'rotate-180'"
                                 viewBox="0 0 24 24"
                                 fill="none"
@@ -504,46 +510,45 @@
                             x-transition:leave="transition ease-in duration-100"
                             x-transition:leave-start="opacity-100 translate-y-0"
                             x-transition:leave-end="opacity-0 -translate-y-2"
-                            class="absolute left-0 top-[calc(100%+14px)] z-[9999] w-[min(90vw,360px)] overflow-hidden rounded-[24px] border border-[#ECECEC] bg-white shadow-[0_24px_60px_rgba(19,39,67,0.18)] md:left-auto md:right-0"
+                            class="absolute left-0 top-[calc(100%+10px)] z-[9999] w-[min(78vw,220px)] overflow-hidden rounded-[16px] border border-[#ECECEC] bg-white shadow-[0_16px_36px_rgba(19,39,67,0.14)] md:left-auto md:right-0"
                         >
 
                             @if($cities->count())
 
                                 {{-- Dropdown Header --}}
                                 <div
-                                    class="flex items-center justify-between border-b border-[#F1F1F1] bg-white px-5 py-4"
+                                    class="flex items-center justify-between gap-2 border-b border-[#F1F1F1] bg-white px-3.5 py-2.5"
                                 >
 
-                                    <div>
+                                    <div class="min-w-0">
 
                                         <h3
-                                            class="text-[16px] font-bold text-[#132743]"
+                                            class="text-[13px] font-bold text-[#132743]"
                                         >
                                             Choose a city
                                         </h3>
 
                                         <p
-                                            class="mt-0.5 text-[13px] text-[#89939D]"
+                                            class="mt-0.5 truncate text-[11px] text-[#89939D]"
                                         >
-                                            Find wedding vendors near you
+                                            Vendors near you
                                         </p>
 
                                     </div>
 
                                     <span
-                                        class="shrink-0 rounded-full bg-[#FBEBEF] px-3 py-1.5 text-[12px] font-bold text-[#D7385E]"
+                                        class="shrink-0 rounded-full bg-[#FBEBEF] px-2 py-0.5 text-[11px] font-bold text-[#D7385E]"
                                     >
                                         {{ $cities->count() }}
-                                        {{ Str::plural('CITY', $cities->count()) }}
                                     </span>
 
                                 </div>
 
 
                                 {{-- City Items --}}
-                                <div class="max-h-[360px] overflow-y-auto p-3">
+                                <div class="max-h-[264px] overflow-y-auto p-1.5 [scrollbar-width:thin]">
 
-                                    <div class="grid grid-cols-1 gap-1">
+                                    <div class="grid grid-cols-1 gap-0.5">
 
                                         @foreach($cities as $cityItem)
 
@@ -554,7 +559,7 @@
                                                     cityLabel = @js($cityItem->name);
                                                     cityOpen = false;
                                                 "
-                                                class="group flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-all duration-150 hover:bg-[#FBEBEF]"
+                                                class="group relative flex w-full items-center gap-2 rounded-lg py-2 pl-3 pr-2 text-left transition-colors duration-150 hover:bg-[#FBEBEF]"
                                                 :class="
                                                     city === @js($cityItem->slug)
                                                         ? 'bg-[#FBEBEF]'
@@ -562,9 +567,16 @@
                                                 "
                                             >
 
+                                                {{-- Selected accent --}}
+                                                <span
+                                                    x-show="city === @js($cityItem->slug)"
+                                                    x-cloak
+                                                    class="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-[#D7385E]"
+                                                ></span>
+
                                                 {{-- Location Icon --}}
                                                 <span
-                                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FBEBEF] text-[#132743] transition-colors duration-150 group-hover:bg-[#D7385E] group-hover:text-white"
+                                                    class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#FBEBEF] text-[#132743] transition-colors duration-150 group-hover:bg-[#D7385E] group-hover:text-white"
                                                     :class="
                                                         city === @js($cityItem->slug)
                                                             ? 'bg-[#D7385E] text-white'
@@ -572,11 +584,11 @@
                                                     "
                                                 >
                                                     <svg
-                                                        class="h-[17px] w-[17px]"
+                                                        class="h-[11px] w-[11px]"
                                                         viewBox="0 0 24 24"
                                                         fill="none"
                                                         stroke="currentColor"
-                                                        stroke-width="1.7"
+                                                        stroke-width="1.8"
                                                         stroke-linecap="round"
                                                         stroke-linejoin="round"
                                                     >
@@ -594,7 +606,7 @@
 
                                                 {{-- City Name --}}
                                                 <span
-                                                    class="min-w-0 flex-1 truncate text-[15px] font-medium text-[#242424] transition-colors group-hover:text-[#D7385E]"
+                                                    class="min-w-0 flex-1 truncate text-[12.5px] font-medium text-[#242424] transition-colors group-hover:text-[#D7385E]"
                                                 >
                                                     {{ $cityItem->name }}
                                                 </span>
@@ -604,7 +616,7 @@
                                                 <svg
                                                     x-show="city === @js($cityItem->slug)"
                                                     x-cloak
-                                                    class="h-4 w-4 shrink-0 text-[#D7385E]"
+                                                    class="h-3.5 w-3.5 shrink-0 text-[#D7385E]"
                                                     viewBox="0 0 24 24"
                                                     fill="none"
                                                     stroke="currentColor"
@@ -626,13 +638,13 @@
                             @else
 
                                 {{-- Empty State --}}
-                                <div class="px-5 py-8 text-center">
+                                <div class="px-5 py-7 text-center">
 
                                     <div
-                                        class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FBEBEF] text-[#D7385E]"
+                                        class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#FBEBEF] text-[#D7385E]"
                                     >
                                         <svg
-                                            class="h-5 w-5"
+                                            class="h-4 w-4"
                                             viewBox="0 0 24 24"
                                             fill="none"
                                             stroke="currentColor"
@@ -650,7 +662,7 @@
                                     </div>
 
                                     <p
-                                        class="mt-3 text-sm font-semibold text-[#132743]"
+                                        class="mt-2 text-sm font-semibold text-[#132743]"
                                     >
                                         No cities available
                                     </p>
@@ -671,12 +683,12 @@
                     {{-- ==================================================
                         SEARCH BUTTON
                     =================================================== --}}
-                    <div class="flex items-center justify-center p-2">
+                    <div class="flex items-center justify-center p-1.5">
 
                         <button
                             type="submit"
                             :disabled="!service && !city"
-                            class="flex h-[54px] w-full items-center justify-center gap-2.5 rounded-full px-8 text-[16px] font-semibold text-white transition-all duration-200 md:w-[160px]"
+                            class="flex h-10 w-full items-center justify-center gap-2 rounded-full px-6 text-[14px] font-semibold text-white transition-all duration-200 md:h-9 md:w-32"
                             :class="
                                 (!service && !city)
                                     ? 'cursor-not-allowed bg-[#E9A0B6] opacity-80'
@@ -686,7 +698,7 @@
 
                             {{-- Search Icon --}}
                             <svg
-                                class="h-[17px] w-[17px] shrink-0"
+                                class="h-[14px] w-[14px] shrink-0"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -724,26 +736,26 @@
             >
 
                 <div
-                    class="flex flex-col overflow-hidden rounded-[20px] border border-[#ECECEC] md:h-[62px] md:flex-row md:items-stretch md:rounded-full"
+                    class="flex flex-col overflow-hidden rounded-[16px] border border-[#ECECEC] md:h-12 md:flex-row md:items-stretch md:rounded-full"
                 >
 
                     <input
                         type="text"
                         name="q"
                         placeholder="Search a vendor or business name"
-                        class="h-[62px] flex-1 border-0 bg-transparent px-6 text-[16px] text-[#242424] outline-none placeholder:text-[rgba(68,68,68,0.6)] md:h-full md:px-8"
+                        class="h-11 flex-1 border-0 bg-transparent px-4 text-[14px] text-[#242424] outline-none placeholder:text-[rgba(68,68,68,0.6)] md:h-full md:px-5"
                     >
 
 
-                    <div class="flex items-center justify-center p-2">
+                    <div class="flex items-center justify-center p-1.5">
 
                         <button
                             type="submit"
-                            class="flex h-[54px] w-full items-center justify-center gap-2.5 rounded-full bg-[#D7385E] px-8 text-[16px] font-semibold text-white transition duration-200 hover:bg-[#C22C50] hover:shadow-lg md:w-[160px]"
+                            class="flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#D7385E] px-6 text-[14px] font-semibold text-white transition duration-200 hover:bg-[#C22C50] hover:shadow-lg md:h-9 md:w-32"
                         >
 
                             <svg
-                                class="h-[17px] w-[17px] shrink-0"
+                                class="h-[14px] w-[14px] shrink-0"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -776,10 +788,10 @@
             POPULAR SEARCHES
         ===================================================== --}}
         <div
-            class="mt-5 flex flex-wrap items-center justify-center gap-x-2 gap-y-2 text-center"
+            class="mt-3 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1.5 text-center md:mt-4"
         >
 
-            <span class="text-[15px] font-semibold text-[#111111]">
+            <span class="text-[13px] font-semibold text-[#111111]">
                 Popular Searches :
             </span>
 
@@ -789,7 +801,7 @@
                     'category' => 'wedding-venues',
                     'slug' => 'lahore'
                 ]) }}"
-                class="text-[15px] font-medium text-[#D7385E] underline-offset-2 transition hover:underline"
+                class="text-[13px] font-medium text-[#D7385E] underline-offset-2 transition hover:underline"
             >
                 Wedding Venues Lahore
             </a>
@@ -800,7 +812,7 @@
                     'category' => 'wedding-venues',
                     'slug' => 'islamabad'
                 ]) }}"
-                class="text-[15px] font-medium text-[#D7385E] underline-offset-2 transition hover:underline"
+                class="text-[13px] font-medium text-[#D7385E] underline-offset-2 transition hover:underline"
             >
                 Wedding Venues Islamabad
             </a>
@@ -811,7 +823,7 @@
                     'category' => 'wedding-venues',
                     'slug' => 'karachi'
                 ]) }}"
-                class="text-[15px] font-medium text-[#D7385E] underline-offset-2 transition hover:underline"
+                class="text-[13px] font-medium text-[#D7385E] underline-offset-2 transition hover:underline"
             >
                 Wedding Venues Karachi
             </a>
@@ -827,17 +839,21 @@
 ============================================================= --}}
 <section
     id="services"
-    class="relative z-0 w-full bg-white py-16 lg:py-20"
+    class="relative z-0 w-full bg-white py-10 lg:py-14"
 >
 
     {{-- Header --}}
-    <div class="mb-10 px-5 text-center">
+    <div class="mx-auto mb-6 max-w-2xl px-5 text-center lg:mb-8">
 
         <h2
-            class="text-3xl font-bold tracking-tight text-[#12365C] sm:text-4xl"
+            class="text-2xl font-bold tracking-tight text-[#12365C] sm:text-3xl lg:text-[32px]"
         >
             Find every wedding service
         </h2>
+
+        <p class="mt-2 text-sm leading-6 text-[#5B6B7A] sm:text-base">
+            From venues to vendors, everything you need is a search away.
+        </p>
 
     </div>
 
@@ -858,7 +874,7 @@
         @endphp
 
 
-        <div class="flex flex-wrap justify-center gap-4 px-0 lg:gap-8 lg:px-12">
+        <div class="mx-auto grid max-w-6xl grid-cols-2 gap-3 px-5 sm:grid-cols-3 md:px-8 lg:grid-cols-4 lg:gap-4 lg:px-12 xl:grid-cols-8">
 
             @foreach ($services->take(8) as $service)
 
@@ -867,30 +883,30 @@
                 @endphp
 
                 <a
-                    href="{{ url('/shadiyana/list/services/' . $service->slug) }}"
-                    class="group relative flex h-[60px] w-full max-w-[9.37rem] items-center justify-between overflow-hidden rounded-2xl pl-2 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md lg:h-[80px] lg:max-w-60 lg:pl-4"
+                    href="{{ url('/listings?category=services&slug=' . $service->slug) }}"
+                    class="group relative flex h-16 w-full items-center justify-between overflow-hidden rounded-2xl pl-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md lg:h-[76px]"
                     style="background-color: {{ $tone['bg'] }};"
                 >
 
                     {{-- Decorative Circle --}}
                     <div
-                        class="pointer-events-none absolute -left-[45px] -top-[45px] h-16 w-24 rounded-full"
+                        class="pointer-events-none absolute -left-[35px] -top-[35px] h-12 w-20 rounded-full"
                         style="background-color: {{ $tone['deco'] }};"
                     ></div>
 
 
                     {{-- Decorative Corner --}}
                     <div
-                        class="pointer-events-none absolute right-0 top-0 h-16 w-16 rounded-bl-full"
+                        class="pointer-events-none absolute right-0 top-0 h-12 w-12 rounded-bl-full"
                         style="background-color: {{ $tone['deco'] }};"
                     ></div>
 
 
                     {{-- Label --}}
-                    <div class="relative flex flex-col justify-center pl-2 font-[Poppins]">
+                    <div class="relative flex flex-col justify-center pr-1.5 font-[Poppins]">
 
                         <p
-                            class="text-left text-[13px] leading-tight text-[#1A1A1A] lg:text-[16px]"
+                            class="text-left text-[12px] leading-snug text-[#1A1A1A] lg:text-[14px]"
                         >
                             {{ $service->name }}
                         </p>
@@ -900,7 +916,7 @@
 
                     {{-- Service Image --}}
                     <div
-                        class="relative h-[60px] w-[60px] shrink-0 lg:h-[75px] lg:w-[75px]"
+                        class="relative h-[46px] w-[46px] shrink-0 lg:h-[56px] lg:w-[56px]"
                     >
 
                         @if ($service->image)
@@ -908,10 +924,10 @@
                             <img
                                 src="{{ asset('storage/' . $service->image) }}"
                                 alt="{{ $service->name }}"
-                                width="75"
-                                height="75"
+                                width="56"
+                                height="56"
                                 loading="lazy"
-                                class="h-full w-full object-contain transition-transform duration-200 group-hover:scale-105"
+                                class="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
                             >
 
                         @endif
@@ -926,10 +942,10 @@
 
 
         {{-- View All --}}
-        <div class="mt-10 text-center">
+        <div class="mt-6 text-center lg:mt-8">
 
             <a
-                href="{{ url('/shadiyana/list/services') }}"
+                href="{{ url('/listings?category=services') }}"
                 class="group inline-flex items-center gap-2 text-sm font-bold text-[#D7385E] transition-colors hover:text-[#B92D4E]"
             >
 
@@ -956,7 +972,7 @@
         <div class="mx-auto max-w-7xl px-5">
 
             <div
-                class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-12 text-center"
+                class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-10 text-center"
             >
                 <p class="text-sm font-medium text-gray-500">
                     No services are available yet.
@@ -976,17 +992,21 @@
 ============================================================= --}}
 <section
     id="events"
-    class="relative z-0 w-full bg-white py-16 lg:py-16"
+    class="relative z-0 w-full bg-[#FAFAFA] py-10 lg:py-14"
 >
 
     {{-- Header --}}
-    <div class="mb-10 px-5 text-center">
+    <div class="mx-auto mb-6 max-w-2xl px-5 text-center lg:mb-8">
 
         <h2
-            class="text-3xl font-bold tracking-tight text-[#12365C] sm:text-4xl"
+            class="text-2xl font-bold tracking-tight text-[#12365C] sm:text-3xl lg:text-[32px]"
         >
             Celebrate every moment
         </h2>
+
+        <p class="mt-2 text-sm leading-6 text-[#5B6B7A] sm:text-base">
+            Mehndi, baraat, walima — vendors for every event on your calendar.
+        </p>
 
     </div>
 
@@ -1007,7 +1027,7 @@
         @endphp
 
 
-        <div class="flex flex-wrap justify-center gap-4 px-0 lg:gap-8 lg:px-12">
+        <div class="mx-auto grid max-w-6xl grid-cols-2 gap-3 px-5 sm:grid-cols-3 md:px-8 lg:grid-cols-4 lg:gap-4 lg:px-12 xl:grid-cols-8">
 
             @foreach ($eventTypes->take(8) as $eventType)
 
@@ -1016,30 +1036,30 @@
                 @endphp
 
                 <a
-                    href="{{ url('/shadiyana/list/events/' . $eventType->slug) }}"
-                    class="group relative flex h-[60px] w-full max-w-[9.37rem] items-center justify-between overflow-hidden rounded-2xl pl-2 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md lg:h-[80px] lg:max-w-60 lg:pl-4"
+                    href="{{ url('/events/' . $eventType->slug) }}"
+                    class="group relative flex h-16 w-full items-center justify-between overflow-hidden rounded-2xl pl-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md lg:h-[76px]"
                     style="background-color: {{ $tone['bg'] }};"
                 >
 
                     {{-- Decorative Circle --}}
                     <div
-                        class="pointer-events-none absolute -left-[45px] -top-[45px] h-16 w-24 rounded-full"
+                        class="pointer-events-none absolute -left-[35px] -top-[35px] h-12 w-20 rounded-full"
                         style="background-color: {{ $tone['deco'] }};"
                     ></div>
 
 
                     {{-- Decorative Corner --}}
                     <div
-                        class="pointer-events-none absolute right-0 top-0 h-16 w-16 rounded-bl-full"
+                        class="pointer-events-none absolute right-0 top-0 h-12 w-12 rounded-bl-full"
                         style="background-color: {{ $tone['deco'] }};"
                     ></div>
 
 
                     {{-- Label --}}
-                    <div class="relative flex flex-col justify-center pl-2 font-[Poppins]">
+                    <div class="relative flex flex-col justify-center pr-1.5 font-[Poppins]">
 
                         <p
-                            class="text-left text-[13px] leading-tight text-[#1A1A1A] lg:text-[16px]"
+                            class="text-left text-[12px] leading-snug text-[#1A1A1A] lg:text-[14px]"
                         >
                             {{ $eventType->name }}
                         </p>
@@ -1049,15 +1069,15 @@
 
                     {{-- Icon --}}
                     <div
-                        class="relative flex h-[60px] w-[60px] shrink-0 items-center justify-center lg:h-[75px] lg:w-[75px]"
+                        class="relative flex h-[46px] w-[46px] shrink-0 items-center justify-center lg:h-[56px] lg:w-[56px]"
                     >
 
                         <div
-                            class="flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-[#D7385E] transition group-hover:bg-[#D7385E] group-hover:text-white lg:h-11 lg:w-11"
+                            class="flex h-8 w-8 items-center justify-center rounded-full bg-white/70 text-[#D7385E] transition group-hover:bg-[#D7385E] group-hover:text-white lg:h-9 lg:w-9"
                         >
 
                             <svg
-                                class="h-5 w-5 lg:h-6 lg:w-6"
+                                class="h-4 w-4 lg:h-[18px] lg:w-[18px]"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -1081,10 +1101,10 @@
 
 
         {{-- View All --}}
-        <div class="mt-10 text-center">
+        <div class="mt-6 text-center lg:mt-8">
 
             <a
-                href="{{ url('/shadiyana/list/events') }}"
+                href="{{ url('/events') }}"
                 class="group inline-flex items-center gap-2 text-sm font-bold text-[#D7385E] transition-colors hover:text-[#B92D4E]"
             >
 
@@ -1097,7 +1117,7 @@
                 >
                     <path
                         fill-rule="evenodd"
-                        d="M7.21 14.77a.75.75 0 010-1.06L10.94 10 7.21 6.29a.75.75 0 111.06-1.06l4.24 4.24a.75.75 0 011.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0z"
+                        d="M7.21 14.77a.75.75 0 010-1.06L10.94 10 7.21 6.29a.75.75 0 011.06-1.06l4.24 4.24a.75.75 0 011.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0z"
                         clip-rule="evenodd"
                     />
                 </svg>
@@ -1111,7 +1131,7 @@
         <div class="mx-auto max-w-7xl px-5">
 
             <div
-                class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-12 text-center"
+                class="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center"
             >
                 <p class="text-sm font-medium text-gray-500">
                     No event types are available yet.
@@ -1125,134 +1145,12 @@
 </section>
 
 
-<!-- 
-{{-- ============================================================
-    CITIES
-============================================================= --}}
-<section
-    id="cities"
-    class="relative z-0 bg-gray-50"
->
-
-    <div
-        class="mx-auto max-w-7xl px-5 py-16 sm:px-6 lg:px-8 lg:py-20"
-    >
-
-        <div>
-
-            <span
-                class="text-xs font-bold uppercase tracking-[0.15em] text-[#D7385E]"
-            >
-                Find vendors near you
-            </span>
-
-            <h2
-                class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
-            >
-                Areas we serve
-            </h2>
-
-            <p
-                class="mt-3 max-w-xl text-sm leading-6 text-gray-500"
-            >
-                Explore wedding vendors and services in cities across Pakistan.
-            </p>
-
-        </div>
-
-
-        @if ($cities->isNotEmpty())
-
-            <div
-                class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-            >
-
-                @foreach ($cities->take(8) as $city)
-
-                    <a
-                        href="{{ url('/shadiyana/list?city=' . $city->slug) }}"
-                        class="group flex items-center justify-between rounded-2xl border border-gray-100 bg-white px-5 py-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#D7385E]/20 hover:bg-[#FBEBEF] hover:shadow-md"
-                    >
-
-                        <div class="flex items-center gap-4">
-
-                            <div
-                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-gray-400 transition group-hover:bg-white group-hover:text-[#D7385E]"
-                            >
-
-                                <svg
-                                    class="h-5 w-5"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                >
-                                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1116 0z"/>
-                                    <circle cx="12" cy="10" r="2.5"/>
-                                </svg>
-
-                            </div>
-
-
-                            <div>
-
-                                <h3
-                                    class="text-sm font-bold text-gray-800 transition group-hover:text-[#D7385E]"
-                                >
-                                    {{ $city->name }}
-                                </h3>
-
-                                <p class="mt-0.5 text-xs text-gray-400">
-                                    Explore wedding vendors
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                        <svg
-                            class="h-4 w-4 text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-[#D7385E]"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M7.21 14.77a.75.75 0 010-1.06L10.94 10 7.21 6.29a.75.75 0 011.06-1.06l4.24 4.24a.75.75 0 010 1.06l-4.24 4.24a.75.75 0 01-1.06-1.06z"
-                                clip-rule="evenodd"
-                            />
-                        </svg>
-
-                    </a>
-
-                @endforeach
-
-            </div>
-
-        @else
-
-            <div
-                class="mt-10 rounded-2xl border border-dashed border-gray-200 bg-white p-12 text-center"
-            >
-                <p class="text-sm font-medium text-gray-500">
-                    No cities are available yet.
-                </p>
-            </div>
-
-        @endif
-
-    </div>
-
-</section>
- -->
-
-
 {{-- ============================================================
     WHY SHADIYANA — STATIC STATS
 ============================================================= --}}
 <section
     id="why-shadiyana"
-    class="bg-white py-16 lg:py-20"
+    class="bg-white py-10 lg:py-14"
 >
 
     <div
@@ -1261,7 +1159,7 @@
 
         {{-- Section Heading --}}
         <h2
-            class="mb-10 text-3xl font-bold tracking-tight text-[#12365C] sm:mb-14 sm:text-4xl"
+            class="mb-6 text-2xl font-bold tracking-tight text-[#12365C] sm:mb-8 sm:text-3xl lg:text-[32px]"
         >
             Why Shadiyana?
         </h2>
@@ -1269,27 +1167,27 @@
 
         {{-- Stats Container --}}
         <div
-            class="rounded-[40px] bg-[#FCEEF0] px-6 py-10 sm:px-10 sm:py-14"
+            class="rounded-[28px] bg-[#FCEEF0] px-5 py-8 sm:px-8 sm:py-10 lg:py-12"
         >
 
             <div
-                class="flex flex-col gap-10 sm:flex-row sm:items-center sm:justify-between sm:gap-0"
+                class="grid grid-cols-2 gap-y-6 sm:flex sm:items-center sm:justify-between sm:gap-0"
             >
 
                 {{-- ==================================================
                     HAPPY USERS
                 =================================================== --}}
                 <div
-                    class="flex flex-1 flex-col items-center gap-3"
+                    class="flex flex-1 flex-col items-center gap-2.5"
                 >
 
                     {{-- Icon --}}
                     <div
-                        class="flex h-14 w-14 items-center justify-center rounded-full bg-[#F8D9DE] text-[#D7385E] sm:h-16 sm:w-16"
+                        class="flex h-11 w-11 items-center justify-center rounded-full bg-[#F8D9DE] text-[#D7385E] sm:h-14 sm:w-14"
                     >
 
                         <svg
-                            class="h-6 w-6 sm:h-7 sm:w-7"
+                            class="h-5 w-5 sm:h-6 sm:w-6"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -1307,7 +1205,7 @@
 
                     {{-- Animated Number --}}
                     <p
-                        class="stat-number text-3xl font-bold text-[#12365C] sm:text-4xl"
+                        class="stat-number text-2xl font-extrabold text-[#12365C] sm:text-3xl"
                         data-target="500000"
                         data-suffix="+"
                     >
@@ -1316,7 +1214,7 @@
 
 
                     {{-- Label --}}
-                    <p class="text-sm text-[#12365C]/75 sm:text-base">
+                    <p class="text-xs text-[#12365C]/75 sm:text-sm">
                         Happy Users
                     </p>
 
@@ -1325,7 +1223,7 @@
 
                 {{-- Divider --}}
                 <div
-                    class="hidden h-16 w-px shrink-0 bg-[#12365C]/15 sm:block"
+                    class="hidden h-12 w-px shrink-0 bg-[#12365C]/15 sm:block"
                 ></div>
 
 
@@ -1333,16 +1231,16 @@
                     VERIFIED VENDORS
                 =================================================== --}}
                 <div
-                    class="flex flex-1 flex-col items-center gap-3"
+                    class="flex flex-1 flex-col items-center gap-2.5"
                 >
 
                     {{-- Icon --}}
                     <div
-                        class="flex h-14 w-14 items-center justify-center rounded-full bg-[#F8D9DE] text-[#D7385E] sm:h-16 sm:w-16"
+                        class="flex h-11 w-11 items-center justify-center rounded-full bg-[#F8D9DE] text-[#D7385E] sm:h-14 sm:w-14"
                     >
 
                         <svg
-                            class="h-6 w-6 sm:h-7 sm:w-7"
+                            class="h-5 w-5 sm:h-6 sm:w-6"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -1359,7 +1257,7 @@
 
                     {{-- Animated Number --}}
                     <p
-                        class="stat-number text-3xl font-bold text-[#12365C] sm:text-4xl"
+                        class="stat-number text-2xl font-extrabold text-[#12365C] sm:text-3xl"
                         data-target="600"
                         data-suffix="+"
                     >
@@ -1368,7 +1266,7 @@
 
 
                     {{-- Label --}}
-                    <p class="text-sm text-[#12365C]/75 sm:text-base">
+                    <p class="text-xs text-[#12365C]/75 sm:text-sm">
                         Verified Vendors
                     </p>
 
@@ -1377,7 +1275,7 @@
 
                 {{-- Divider --}}
                 <div
-                    class="hidden h-16 w-px shrink-0 bg-[#12365C]/15 sm:block"
+                    class="hidden h-12 w-px shrink-0 bg-[#12365C]/15 sm:block"
                 ></div>
 
 
@@ -1385,16 +1283,16 @@
                     SECURE PAYMENT
                 =================================================== --}}
                 <div
-                    class="flex flex-1 flex-col items-center gap-3"
+                    class="flex flex-1 flex-col items-center gap-2.5"
                 >
 
                     {{-- Icon --}}
                     <div
-                        class="flex h-14 w-14 items-center justify-center rounded-full bg-[#F8D9DE] text-[#D7385E] sm:h-16 sm:w-16"
+                        class="flex h-11 w-11 items-center justify-center rounded-full bg-[#F8D9DE] text-[#D7385E] sm:h-14 sm:w-14"
                     >
 
                         <svg
-                            class="h-6 w-6 sm:h-7 sm:w-7"
+                            class="h-5 w-5 sm:h-6 sm:w-6"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -1420,7 +1318,7 @@
 
                     {{-- Animated Number --}}
                     <p
-                        class="stat-number text-3xl font-bold text-[#12365C] sm:text-4xl"
+                        class="stat-number text-2xl font-extrabold text-[#12365C] sm:text-3xl"
                         data-target="100"
                         data-suffix="%"
                     >
@@ -1429,7 +1327,7 @@
 
 
                     {{-- Label --}}
-                    <p class="text-sm text-[#12365C]/75 sm:text-base">
+                    <p class="text-xs text-[#12365C]/75 sm:text-sm">
                         Secure Payment
                     </p>
 
@@ -1438,7 +1336,7 @@
 
                 {{-- Divider --}}
                 <div
-                    class="hidden h-16 w-px shrink-0 bg-[#12365C]/15 sm:block"
+                    class="hidden h-12 w-px shrink-0 bg-[#12365C]/15 sm:block"
                 ></div>
 
 
@@ -1446,16 +1344,16 @@
                     WEDDINGS PLANNED
                 =================================================== --}}
                 <div
-                    class="flex flex-1 flex-col items-center gap-3"
+                    class="flex flex-1 flex-col items-center gap-2.5"
                 >
 
                     {{-- Icon --}}
                     <div
-                        class="flex h-14 w-14 items-center justify-center rounded-full bg-[#F8D9DE] text-[#D7385E] sm:h-16 sm:w-16"
+                        class="flex h-11 w-11 items-center justify-center rounded-full bg-[#F8D9DE] text-[#D7385E] sm:h-14 sm:w-14"
                     >
 
                         <svg
-                            class="h-6 w-6 sm:h-7 sm:w-7"
+                            class="h-5 w-5 sm:h-6 sm:w-6"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -1470,7 +1368,7 @@
 
                     {{-- Animated Number --}}
                     <p
-                        class="stat-number text-3xl font-bold text-[#12365C] sm:text-4xl"
+                        class="stat-number text-2xl font-extrabold text-[#12365C] sm:text-3xl"
                         data-target="30000"
                         data-suffix="+"
                     >
@@ -1479,7 +1377,7 @@
 
 
                     {{-- Label --}}
-                    <p class="text-sm text-[#12365C]/75 sm:text-base">
+                    <p class="text-xs text-[#12365C]/75 sm:text-sm">
                         Weddings Planned
                     </p>
 
@@ -1499,20 +1397,20 @@
     FINAL CTA
 ============================================================= --}}
 <section
-    class="relative z-0 border-t border-gray-100 bg-white"
+    class="relative z-0 border-t border-gray-100 bg-gradient-to-b from-white to-[#FCEEF0]"
 >
 
     <div
-        class="mx-auto max-w-4xl px-5 py-16 text-center sm:px-6 lg:px-8 lg:py-20"
+        class="mx-auto max-w-4xl px-5 py-10 text-center sm:px-6 lg:px-8 lg:py-14"
     >
 
         {{-- Icon --}}
         <div
-            class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FBEBEF] text-[#D7385E]"
+            class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#D7385E] shadow-sm"
         >
 
             <svg
-                class="h-7 w-7"
+                class="h-6 w-6"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -1530,7 +1428,7 @@
 
         {{-- Heading --}}
         <h2
-            class="mt-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+            class="mt-5 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl"
         >
             Ready to plan your big day?
         </h2>
@@ -1538,7 +1436,7 @@
 
         {{-- Description --}}
         <p
-            class="mx-auto mt-4 max-w-xl text-sm leading-6 text-gray-500 sm:text-base"
+            class="mx-auto mt-3 max-w-xl text-sm leading-6 text-gray-500 sm:text-base"
         >
             Start exploring wedding venues, services and vendors today.
         </p>
@@ -1546,12 +1444,12 @@
 
         {{-- Buttons --}}
         <div
-            class="mt-7 flex flex-col justify-center gap-3 sm:flex-row"
+            class="mt-6 flex flex-col justify-center gap-3 sm:flex-row"
         >
 
             <a
-                href="{{ url('/shadiyana/list') }}"
-                class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#D7385E] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#B92D4E] hover:shadow-lg"
+                href="{{ url('/listings') }}"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#D7385E] px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#B92D4E] hover:shadow-lg"
             >
 
                 Explore vendors
